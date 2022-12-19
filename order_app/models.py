@@ -10,9 +10,9 @@ class Product(models.Model):
     company = models.ForeignKey(Company, related_name="company_products", on_delete=models.CASCADE)
 
     name = models.CharField(max_length=255)
-    item_no = models.CharField(default="")
+    item_no = models.CharField(max_length=12, default="")
     qty = models.PositiveIntegerField(default=0)
-    item_type = models.CharField(choices=ITEM_TYPES)
+    item_type = models.CharField(max_length=1, choices=ITEM_TYPES)
     active = models.BooleanField()
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -26,7 +26,7 @@ class Product(models.Model):
 
 class Order(models.Model):
     date = models.DateTimeField(default=now, blank=True)
-    creator = models.ForeignKey(User, related_name="user_orders")
+    creator = models.ForeignKey(User, related_name="user_orders", on_delete=models.CASCADE)
 
     product_orders = models.ManyToManyField(Product, related_name="product_orders", through="ProductOrder")
 
@@ -37,8 +37,8 @@ class Order(models.Model):
         return f"Order #{self.id}"
 
 class ProductOrder(models.Model):
-    product = models.ForeignKey(Product)
-    order = models.ForeignKey(Order)
+    product = models.ForeignKey(Product, on_delete=models.DO_NOTHING) # These on_delete's might have to be changed later
+    order = models.ForeignKey(Order, on_delete=models.DO_NOTHING)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

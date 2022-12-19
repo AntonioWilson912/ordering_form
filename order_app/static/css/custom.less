@@ -1,0 +1,154 @@
+@import url('https://fonts.googleapis.com/css2?family=Quicksand&display=swap');
+
+@mr-10: 10px;
+
+@p-10: 10px;
+@p-20: 20px;
+@p-10-20: 10px 20px;
+@p-20-10: 20px 10px;
+
+@nice-green: #84be7d;
+@nice-blue: #5B83AD;
+@light-blue: @nice-blue + #111;
+@dark-gray: rgb(51, 51, 51);
+
+@border-groove-black-2: 5px groove black;
+@border-thick-black: 10px ridge black;
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Quicksand', sans-serif;
+}
+
+.wrapper {
+    width: 100%;
+    height: 1080px;
+    display: flex;
+}
+
+.btn-pointer {
+    cursor: pointer;
+}
+
+#sidebar {
+    flex: 2;
+    background-color: @nice-blue;
+    border-right: @border-thick-black;
+
+    .header {
+        padding: @p-20-10;
+        text-align: center;
+        color: white;
+        border-bottom: @border-groove-black-2;
+
+        h2 {
+            display: block;
+        }
+
+        strong {
+            display: none;
+        }
+    }
+
+    ul.list-unstyled.components {
+        list-style: none;
+        background-color: @nice-blue;
+        width: 100%;
+        color: white;
+
+        li {
+            display: block;
+            padding: @p-20;
+            border-bottom: @border-groove-black-2;
+
+            a {
+                color: white;
+                text-decoration: none;
+            }
+
+            .fa-solid, .fa-regular {
+                margin-right: @mr-10;
+            }
+        }
+
+        li.active {
+            background-color: @light-blue;
+        }
+    }
+}
+
+#content {
+    flex: 10;
+
+    .navbar, .main {
+        display: flex;
+        padding: @p-20;
+    }
+
+    .navbar {
+        align-items: center;
+        justify-content: space-between;
+
+        ul.list-unstyled.components {
+            list-style: none;
+            background-color: @nice-green;
+            position: absolute;
+            right: 0;
+            top: 86px;
+
+            li {
+                padding: @p-20;
+
+                a {
+                    text-decoration: none;
+                }
+            }
+        }
+
+        #user-icon {
+            cursor: pointer;
+
+            img {
+                width: 40px;
+                height: 40px;
+                border: 1px solid white;
+                border-radius: 50%;
+                margin-right: 10px;
+            }
+
+            #user-icon-chevron {
+                position: relative;
+                right: 20px;
+            }
+        }
+
+        #user-dropdown {
+            display: none;
+        }
+    }
+
+    .btn {
+        padding: @p-10-20;
+        border-radius: 5px;
+        font-size: 1.1em;
+
+        #toggle-sidebar {
+            rotate: -90deg;
+        }
+    }
+
+    .btn-blue {
+        background-color: @nice-blue;
+    }
+
+
+    .navbar-dark {
+        background-color: @dark-gray;
+
+        * {
+            color: white;
+        }
+    }
+}

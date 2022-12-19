@@ -1,0 +1,119 @@
+@font-face {
+  font-family: 'Quicksand';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(https://fonts.gstatic.com/s/quicksand/v30/6xK-dSZaM9iE8KbpRA_LJ3z8mH9BOJvgkP8o18E.ttf) format('truetype');
+}
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Quicksand', sans-serif;
+}
+.wrapper {
+  width: 100%;
+  height: 1080px;
+  display: flex;
+}
+.btn-pointer {
+  cursor: pointer;
+}
+#sidebar {
+  flex: 2;
+  background-color: #5B83AD;
+  border-right: 10px ridge black;
+}
+#sidebar .header {
+  padding: 20px 10px;
+  text-align: center;
+  color: white;
+  border-bottom: 5px groove black;
+}
+#sidebar .header h2 {
+  display: block;
+}
+#sidebar .header strong {
+  display: none;
+}
+#sidebar ul.list-unstyled.components {
+  list-style: none;
+  background-color: #5B83AD;
+  width: 100%;
+  color: white;
+}
+#sidebar ul.list-unstyled.components li {
+  display: block;
+  padding: 20px;
+  border-bottom: 5px groove black;
+}
+#sidebar ul.list-unstyled.components li a {
+  color: white;
+  text-decoration: none;
+}
+#sidebar ul.list-unstyled.components li .fa-solid,
+#sidebar ul.list-unstyled.components li .fa-regular {
+  margin-right: 10px;
+}
+#sidebar ul.list-unstyled.components li.active {
+  background-color: #6c94be;
+}
+#content {
+  flex: 10;
+}
+#content .navbar,
+#content .main {
+  display: flex;
+  padding: 20px;
+}
+#content .navbar {
+  align-items: center;
+  justify-content: space-between;
+}
+#content .navbar ul.list-unstyled.components {
+  list-style: none;
+  background-color: #84be7d;
+  position: absolute;
+  right: 0;
+  top: 86px;
+}
+#content .navbar ul.list-unstyled.components li {
+  padding: 20px;
+}
+#content .navbar ul.list-unstyled.components li a {
+  text-decoration: none;
+}
+#content .navbar #user-icon {
+  cursor: pointer;
+}
+#content .navbar #user-icon img {
+  width: 40px;
+  height: 40px;
+  border: 1px solid white;
+  border-radius: 50%;
+  margin-right: 10px;
+}
+#content .navbar #user-icon #user-icon-chevron {
+  position: relative;
+  right: 20px;
+}
+#content .navbar #user-dropdown {
+  display: none;
+}
+#content .btn {
+  padding: 10px 20px;
+  border-radius: 5px;
+  font-size: 1.1em;
+}
+#content .btn #toggle-sidebar {
+  rotate: -90deg;
+}
+#content .btn-blue {
+  background-color: #5B83AD;
+}
+#content .navbar-dark {
+  background-color: #333333;
+}
+#content .navbar-dark * {
+  color: white;
+}
