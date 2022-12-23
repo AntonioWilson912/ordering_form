@@ -21,7 +21,7 @@
                 <strong>OR</strong> <!-- when sidebar is collapsed -->
             </div>
             <ul class="list-unstyled components">
-                <li>
+                <li class="active">
                     <a href="{% url 'orders:dashboard' %}"><i class="fa-solid fa-house"></i><span>Dashboard</span></a>
                 </li>
                 <li>
@@ -30,7 +30,7 @@
                 <li>
                     <a href="{% url 'orders:all_orders' %}"><i class="fa-regular fa-file-lines"></i><span>Orders</span></a>
                 </li>
-                <li class="active">
+                <li>
                     <a href="{% url 'orders:all_products' %}"><i class="fa-solid fa-database"></i><span>Products</span></a>
                 </li>
                 <li>
@@ -47,7 +47,8 @@
                     <i class="fa-solid fa-angles-up" id="toggle-sidebar"></i>
                     <span>Toggle Sidebar</span>
                 </button>
-                <div>
+                <div class="container">
+                    <p id="user-label">Logged in as: <span id="logged-in-username">username</span></p>
                     <div id="user-icon">
                         <img src="{% static 'img/default_avatar.png' %}" class="img-icon" alt="user avatar">
                         <i id="user-icon-chevron" class="fa-solid fa-chevron-down"></i>

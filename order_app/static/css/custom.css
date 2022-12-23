@@ -16,6 +16,10 @@
   height: 1080px;
   display: flex;
 }
+.container {
+  display: flex;
+  align-items: center;
+}
 .btn-pointer {
   cursor: pointer;
 }
@@ -83,7 +87,14 @@
 #content .navbar ul.list-unstyled.components li a {
   text-decoration: none;
 }
-#content .navbar #user-icon {
+#content .navbar #user-label {
+  margin-right: 10px;
+}
+#content .navbar #user-label #logged-in-username {
+  font-weight: 900;
+}
+#content .navbar #user-icon img,
+#content .navbar #user-icon #user-icon-chevron {
   cursor: pointer;
 }
 #content .navbar #user-icon img {

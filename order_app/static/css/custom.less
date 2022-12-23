@@ -11,6 +11,7 @@
 @nice-blue: #5B83AD;
 @light-blue: @nice-blue + #111;
 @dark-gray: rgb(51, 51, 51);
+@light-gray: rgb(167, 166, 166);
 
 @border-groove-black-2: 5px groove black;
 @border-thick-black: 10px ridge black;
@@ -26,6 +27,11 @@
     width: 100%;
     height: 1080px;
     display: flex;
+}
+
+.container {
+    display: flex;
+    align-items: center;
 }
 
 .btn-pointer {
@@ -107,8 +113,19 @@
             }
         }
 
+        #user-label {
+            margin-right: 10px;
+            
+            #logged-in-username {
+                font-weight: 900;
+            }
+        }
+
         #user-icon {
-            cursor: pointer;
+
+            img, #user-icon-chevron {
+                cursor: pointer;
+            }
 
             img {
                 width: 40px;

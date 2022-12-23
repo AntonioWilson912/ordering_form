@@ -14,7 +14,7 @@ def reset_password(request):
     return render(request, "reset_password.html")
 
 def logout(request):
-    for key in request.session:
+    for key in request.session.keys():
         del request.session[key]
 
     return redirect("/")
