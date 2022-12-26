@@ -11,6 +11,11 @@ def dashboard(request):
 
 
 # Order related pages
+def new_order(request):
+    # if not "user_id" in request.session:
+    #     return redirect("/")
+    return render(request, "new_order.html")
+
 def view_orders(request):
     # For later
     # if not "user_id" in request.session:
@@ -18,6 +23,16 @@ def view_orders(request):
     return render(request, "view_orders.html")
 
 # Product related pages
+def new_product(request):
+    # if not "user_id" in request.session:
+    #     return redirect("/")
+
+    context = {
+        "all_companies": Company.objects.all()
+    }
+
+    return render(request, "new_product.html", context)
+
 def view_products(request):
     # For later
     # if not "user_id" in request.session:

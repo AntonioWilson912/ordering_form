@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>View Products - Ordering Form</title>
+    <title>New Product - Ordering Form</title>
     {% load static %}
     <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Quicksand&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/custom.css' %}">
@@ -21,7 +21,7 @@
                 <strong>OR</strong> <!-- when sidebar is collapsed -->
             </div>
             <ul class="list-unstyled components">
-                <li class="active">
+                <li>
                     <a href="{% url 'orders:dashboard' %}"><i class="fa-solid fa-house"></i><span>Dashboard</span></a>
                 </li>
                 <li>
@@ -30,7 +30,7 @@
                 <li>
                     <a href="{% url 'orders:all_orders' %}"><i class="fa-regular fa-file-lines"></i><span>Orders</span></a>
                 </li>
-                <li>
+                <li class="active">
                     <a href="{% url 'orders:all_products' %}"><i class="fa-solid fa-database"></i><span>Products</span></a>
                 </li>
                 <li>
@@ -68,8 +68,7 @@
             </nav>
             <div class="main">
                 <!-- display a list of companies and number of products for each I suppose -->
-                <p>{{ company.name }}</p>
-                <p>{{ company_products|length }}</p>
+                New Product Form
             </div>
         </div>
     </div>
