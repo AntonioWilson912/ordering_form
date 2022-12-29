@@ -1,7 +1,11 @@
 @import url('https://fonts.googleapis.com/css2?family=Quicksand&display=swap');
 
+@m-10: 10px;
 @mr-10: 10px;
+@mt-10: 10px;
+@my-10: 10px;
 
+@p-5: 5px;
 @p-10: 10px;
 @p-20: 20px;
 @p-10-20: 10px 20px;
@@ -12,9 +16,13 @@
 @light-blue: @nice-blue + #111;
 @dark-gray: rgb(51, 51, 51);
 @light-gray: rgb(167, 166, 166);
+@lighter-gray: rgb(214, 214, 214);
+@warning-red: #bd1f1f;
 
 @border-groove-black-2: 5px groove black;
 @border-thick-black: 10px ridge black;
+@border-solid-dark-gray: 5px solid @dark-gray;
+@border-solid-dark-gray-thin: 1px solid @dark-gray;
 
 * {
     margin: 0;
@@ -36,6 +44,14 @@
 
 .btn-pointer {
     cursor: pointer;
+}
+
+.right {
+    justify-content: end;
+}
+
+.m-10 {
+    margin: @m-10;
 }
 
 #sidebar {
@@ -87,12 +103,22 @@
 
 #content {
     flex: 10;
+    display: flex;
+    flex-direction: column;
 
     .navbar, .main {
         display: flex;
         padding: @p-20;
     }
 
+    .navbar-dark {
+        background-color: @dark-gray;
+
+        * {
+            color: white;
+        }
+    }
+    
     .navbar {
         align-items: center;
         justify-content: space-between;
@@ -146,6 +172,60 @@
         }
     }
 
+    #bannerClose {
+        cursor: pointer;
+    }
+
+    .banner {
+        display: flex;
+        padding: @p-20;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .banner-warning {
+        background-color: @warning-red;
+        color: white;
+    }
+
+    .main {
+        flex-direction: column;
+        align-items: center;
+
+        .form {
+            display: block;
+            border: @border-solid-dark-gray;
+            border-radius: 5px;
+            padding: 20px;
+            margin-top: @mt-10;
+
+            .heading {
+                font-size: 1.5rem;
+                background-color: white;
+                position: relative;
+                top: -38px;
+                padding: 5px;
+            }
+
+            * {
+                margin: @my-10;
+            }
+
+            .form-group {
+                display: flex;
+                align-items: center;
+                justify-content: space-evenly;
+            }
+
+            .form-submit {
+                display: flex;
+                align-self: center;
+                justify-content: center;
+            }
+        }
+        
+    }
+
     .btn {
         padding: @p-10-20;
         border-radius: 5px;
@@ -158,14 +238,43 @@
 
     .btn-blue {
         background-color: @nice-blue;
+        color: white;
     }
 
+    .table {
+        border-collapse: collapse;
+        vertical-align: middle;
 
-    .navbar-dark {
-        background-color: @dark-gray;
+        tr {
+            border-bottom: @border-solid-dark-gray-thin;
+            
+            &:last-child {
+                border-bottom: none;
+            }
 
-        * {
-            color: white;
+        }
+        
+        th {
+            text-align: left;
+
+            &:last-child {
+                text-align: right;
+            }
+        }
+
+        th, td {
+            padding: @p-10;
+        }
+
+        td:last-child {
+            text-align: right;
+        }
+    }
+
+    .table-striped {
+
+        tbody > *:nth-child(odd) {
+            background-color: @lighter-gray;
         }
     }
 }

@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect
+from .models import Company
 
 # Create your views here.
 def dashboard(request):

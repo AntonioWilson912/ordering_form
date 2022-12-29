@@ -23,6 +23,12 @@
 .btn-pointer {
   cursor: pointer;
 }
+.right {
+  justify-content: end;
+}
+.m-10 {
+  margin: 10px;
+}
 #sidebar {
   flex: 2;
   background-color: #5B83AD;
@@ -64,11 +70,19 @@
 }
 #content {
   flex: 10;
+  display: flex;
+  flex-direction: column;
 }
 #content .navbar,
 #content .main {
   display: flex;
   padding: 20px;
+}
+#content .navbar-dark {
+  background-color: #333333;
+}
+#content .navbar-dark * {
+  color: white;
 }
 #content .navbar {
   align-items: center;
@@ -111,6 +125,50 @@
 #content .navbar #user-dropdown {
   display: none;
 }
+#content #bannerClose {
+  cursor: pointer;
+}
+#content .banner {
+  display: flex;
+  padding: 20px;
+  align-items: center;
+  justify-content: space-between;
+}
+#content .banner-warning {
+  background-color: #bd1f1f;
+  color: white;
+}
+#content .main {
+  flex-direction: column;
+  align-items: center;
+}
+#content .main .form {
+  display: block;
+  border: 5px solid #333333;
+  border-radius: 5px;
+  padding: 20px;
+  margin-top: 10px;
+}
+#content .main .form .heading {
+  font-size: 1.5rem;
+  background-color: white;
+  position: relative;
+  top: -38px;
+  padding: 5px;
+}
+#content .main .form * {
+  margin: 10px;
+}
+#content .main .form .form-group {
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+}
+#content .main .form .form-submit {
+  display: flex;
+  align-self: center;
+  justify-content: center;
+}
 #content .btn {
   padding: 10px 20px;
   border-radius: 5px;
@@ -121,10 +179,31 @@
 }
 #content .btn-blue {
   background-color: #5B83AD;
-}
-#content .navbar-dark {
-  background-color: #333333;
-}
-#content .navbar-dark * {
   color: white;
+}
+#content .table {
+  border-collapse: collapse;
+  vertical-align: middle;
+}
+#content .table tr {
+  border-bottom: 1px solid #333333;
+}
+#content .table tr:last-child {
+  border-bottom: none;
+}
+#content .table th {
+  text-align: left;
+}
+#content .table th:last-child {
+  text-align: right;
+}
+#content .table th,
+#content .table td {
+  padding: 10px;
+}
+#content .table td:last-child {
+  text-align: right;
+}
+#content .table-striped tbody > *:nth-child(odd) {
+  background-color: #d6d6d6;
 }
