@@ -79,5 +79,25 @@ $(document).ready(function() {
     });
     $("#newOrderForm").submit(function(e) {
         e.preventDefault();
+        // Let's just test to see if we can get all the values of the input fields
+        var formInputs = $(this).serializeArray();
+        var productsToSend = formInputs.filter(input => input.value > 0 && input.name.startsWith("product"));
+        productsToSend.forEach(input => console.log(input));
+        $.ajax({
+            type: "POST",
+            url: "/products/orders/create",
+            data: {
+                ordered_products: productsToSend,
+                csrfmiddlewaretoken: $("input[name=csrfmiddlewaretoken]").val(),
+                dataType: "json"
+            },
+            success: function(data) {
+                console.log("Order submision was a success.");
+                console.log(data);
+            },
+            error: function(errorMessage) {
+                console.log(errorMessage);
+            }
+        });
     });
 });

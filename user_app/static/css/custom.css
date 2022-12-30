@@ -185,11 +185,8 @@
   border-collapse: collapse;
   vertical-align: middle;
 }
-#content .table tr {
-  border-bottom: 1px solid #333333;
-}
-#content .table tr:last-child {
-  border-bottom: none;
+#content .table tbody tr {
+  border-top: 1px solid #333333;
 }
 #content .table th {
   text-align: left;
