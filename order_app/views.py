@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from company_app.models import Company
 from .models import *
+from .forms import *
 
 # Create your views here.
 def convert_product_to_json(product):
@@ -111,10 +112,16 @@ def new_product(request):
 
     context = {
         # "logged_in_user": User.objects.get(id=request.session["user_id"])
-        "all_companies": Company.objects.all()
+        "all_companies": Company.objects.all(),
+        "new_product_form": NewProductForm()
     }
 
     return render(request, "new_product.html", context)
+
+def create_product(request):
+    # if not "user_id" in request.session:
+        # return redirect("/")
+    pass
 
 def view_products(request):
     # For later

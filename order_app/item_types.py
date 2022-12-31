@@ -1,4 +1,5 @@
 ITEM_TYPES = (
-    ("W", ("Weight")),
-    ("C", ("Case"))
+    ("0", ("Select an item type...")),
+    ("C", ("Case")),
+    ("W", ("Weight"))
 )

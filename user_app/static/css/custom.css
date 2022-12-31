@@ -164,6 +164,24 @@
   align-items: center;
   justify-content: space-evenly;
 }
+#content .main .form .form-group .form-control {
+  padding: 5px;
+}
+#content .main .form .form-group input[type=text].form-control {
+  box-sizing: border-box;
+  border: none;
+  border-bottom: 1px solid #5B83AD;
+}
+#content .main .form .form-group input[type=text].form-control :focus {
+  outline: none;
+}
+#content .main .form .form-group label {
+  flex: 2;
+}
+#content .main .form .form-group input,
+#content .main .form .form-group select {
+  flex: 3;
+}
 #content .main .form .form-submit {
   display: flex;
   align-self: center;

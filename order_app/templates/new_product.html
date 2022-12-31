@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>New Product - Ordering Form</title>
+    <title>New Order - Ordering Form</title>
     {% load static %}
     <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Quicksand&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/custom.css' %}">
@@ -66,15 +66,47 @@
                     </ul>
                 </div>
             </nav>
+            <div id="banner" class="banner">
+                <span id="bannerText"></span>
+                <i id="bannerClose" class="fa-solid fa-xmark"></i>
+            </div>
             <div class="main">
-                <!-- display a list of companies and number of products for each I suppose -->
-                New Product Form
+                <form class="form" id="newProductForm" method="post">
+                    {% csrf_token %}
+                    <!-- show the list of companies to choose from -->
+                    <span class="heading">Create a New Product</span>
+                    <div class="form-group" id="companySelectGroup">
+                        <label for="companySelect">Choose a Company:</label>
+                        <select name="companySelect" id="companySelect" class="form-control">
+                            <option value="-1">Select a company...</option>
+                            {% for this_company in all_companies %}
+                                <option value="{{ this_company.id }}">{{ this_company.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <!-- upon choosing the company, generate the form -->
+                    <div class="form-group">
+                        {{ new_product_form.name.label_tag }}
+                        {{ new_product_form.name }}
+                    </div>
+                    <div class="form-group">
+                        {{ new_product_form.item_no.label_tag }}
+                        {{ new_product_form.item_no }}
+                    </div>
+                    <div class="form-group">
+                        {{ new_product_form.item_type.label_tag }}
+                        {{ new_product_form.item_type }}
+                    </div>
+                    <div class="form-submit">
+                        <input class="btn btn-blue" type="submit" id="newProductSubmit" value="Create Product">
+                    </div>
+                </form>
             </div>
         </div>
     </div>
 
-
     <script src="https://code.jquery.com/jquery-3.6.2.js" integrity="sha256-pkn2CUZmheSeyssYw3vMp1+xyub4m+e+QK4sQskvuo4=" crossorigin="anonymous"></script>
     <script src="{% static 'js/bar_script.js' %}"></script>
+    <script src="{% static 'js/product_form_script.js' %}"></script>
 </body>
 </html>
