@@ -121,7 +121,15 @@ def new_product(request):
 def create_product(request):
     # if not "user_id" in request.session:
         # return redirect("/")
-    pass
+
+    errors = Product.objects.validate_new_product(request.POST)
+    if len(errors) > 0:
+        return JsonResponse({ "errors": errors })
+
+    selected_company = Company.objects.get(id=int(request.POST["company_id"]))
+    Product.objects.create(company=selected_company, name=request.POST["name"], item_no=request.POST["item_no"], item_type=request.POST["item_type"])
+
+    return JsonResponse({ "success": "All fields were good."})
 
 def view_products(request):
     # For later
@@ -133,8 +141,11 @@ def view_products(request):
     # Get all associated products if there are any
     company_products = Product.objects.filter(company=first_company)
 
+    all_products = Product.objects.all()
+
     context = {
         #"logged_in_user": User.objects.get(id=request.session["user_id"]),
+        "all_products": all_products,
         "company": first_company,
         "company_products": company_products
     }

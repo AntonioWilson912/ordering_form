@@ -58,6 +58,10 @@
     flex: 2;
     background-color: @nice-blue;
     border-right: @border-thick-black;
+    position: sticky;
+    position: -webkit-sticky;
+    align-self: flex-start;
+    top: 0;
 
     .header {
         padding: @p-20-10;
@@ -122,6 +126,10 @@
     .navbar {
         align-items: center;
         justify-content: space-between;
+        align-items: flex-start;
+        position: sticky;
+        position: -webkit-sticky;
+        top: 0;
 
         ul.list-unstyled.components {
             list-style: none;
@@ -188,9 +196,19 @@
         color: white;
     }
 
+    .banner-success {
+        background-color: @nice-green;
+        color: white;
+    }
+
     .main {
         flex-direction: column;
         align-items: center;
+
+        .heading {
+            font-size: 2rem;
+            font-weight: 900;
+        }
 
         .form {
             display: block;
@@ -199,7 +217,7 @@
             padding: 20px;
             margin-top: @mt-10;
 
-            .heading {
+            .form-heading {
                 font-size: 1.5rem;
                 background-color: white;
                 position: relative;
@@ -211,6 +229,11 @@
                 margin: @my-10;
             }
 
+            .form-error {
+                font-size: 0.75rem;
+                color: @warning-red;
+            }
+
             .form-group {
                 display: flex;
                 align-items: center;
@@ -218,7 +241,6 @@
 
                 .form-control {
                     padding: 5px;
-
                 }
                 
                 input[type=text].form-control {

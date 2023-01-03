@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>New Order - Ordering Form</title>
+    <title>New Product - Ordering Form</title>
     {% load static %}
     <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Quicksand&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/custom.css' %}">
@@ -74,7 +74,8 @@
                 <form class="form" id="newProductForm" method="post">
                     {% csrf_token %}
                     <!-- show the list of companies to choose from -->
-                    <span class="heading">Create a New Product</span>
+                    <span class="form-heading">Create a New Product</span>
+                    <div id="companyError" class="form-error"></div>
                     <div class="form-group" id="companySelectGroup">
                         <label for="companySelect">Choose a Company:</label>
                         <select name="companySelect" id="companySelect" class="form-control">
@@ -85,14 +86,17 @@
                         </select>
                     </div>
                     <!-- upon choosing the company, generate the form -->
+                    <div id="nameError" class="form-error"></div>
                     <div class="form-group">
                         {{ new_product_form.name.label_tag }}
                         {{ new_product_form.name }}
                     </div>
+                    <div id="itemNoError" class="form-error"></div>
                     <div class="form-group">
                         {{ new_product_form.item_no.label_tag }}
                         {{ new_product_form.item_no }}
                     </div>
+                    <div id="itemTypeError" class="form-error"></div>
                     <div class="form-group">
                         {{ new_product_form.item_type.label_tag }}
                         {{ new_product_form.item_type }}

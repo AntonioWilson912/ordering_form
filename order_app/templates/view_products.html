@@ -71,8 +71,39 @@
             </div>
             <div class="main">
                 <!-- display a list of companies and number of products for each I suppose -->
-                <p>{{ company.name }}</p>
-                <p>{{ company_products|length }}</p>
+                <span class="heading">View All Products</span>
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Company</th>
+                            <th>Item No.</th>
+                            <th>Name</th>
+                            <th>Active?</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if all_products|length > 0 %}
+                        {% for this_product in all_products %}
+                        <tr>
+                            <td>{{ this_product.company }}</td>
+                            <td>{{ this_product.item_no }}</td>
+                            <td>{{ this_product.name }}</td>
+                            <td>
+                            {% if this_product.active %}
+                                <p>Yes</p>
+                            {% else %}
+                                <p>No</p>
+                            {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        {% else %}
+                        <tr>
+                            <td colspan="4">There are currently no products available in the database whatsoever.</td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>

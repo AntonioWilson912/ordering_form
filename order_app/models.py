@@ -5,6 +5,28 @@ from user_app.models import User
 from .item_types import *
 
 # Create your models here.
+class ProductManager(models.Manager):
+    def validate_new_product(self, product_data):
+        errors = {}
+
+        if int(product_data["company_id"]) == -1:
+            errors["company_error"] = "Must select a company."
+        if len(product_data["name"]) < 3:
+            errors["name_error"] = "Name must be at least 3 characters long."
+        if (product_data["item_type"]) != "C" and product_data["item_type"] != "W":
+            errors["item_type_error"] = "Must choose an item type."
+
+        # Test if the selected company already has the input item number
+        if len(product_data["item_no"]) > 0:
+            selected_company = Company.objects.filter(id=int(product_data["company_id"])).first()
+            if not selected_company:
+                errors["company_error"] = "You selected a company from the black hole."
+            else:
+                company_products = Product.objects.filter(company=selected_company, item_no=product_data["item_no"])
+                if len(company_products) > 0:
+                    errors["item_no_error"] = "That item number for the selected company is already in use."
+
+        return errors
 
 class Product(models.Model):
     company = models.ForeignKey(Company, related_name="company_products", on_delete=models.CASCADE)
@@ -13,13 +35,15 @@ class Product(models.Model):
     item_no = models.CharField(max_length=12, default="")
     qty = models.PositiveIntegerField(default=0)
     item_type = models.CharField(max_length=1, choices=ITEM_TYPES)
-    active = models.BooleanField()
+    active = models.BooleanField(default=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    objects = ProductManager()
+
     class Meta:
-        ordering = ['item_no']
+        ordering = ['company', 'item_no']
 
     def __str__(self):
         return self.name
