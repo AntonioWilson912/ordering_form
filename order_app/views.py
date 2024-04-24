@@ -6,15 +6,13 @@ from .forms import *
 
 # Create your views here.
 def convert_product_to_json(product):
-    product_dict = {}
-
-    product_dict["id"] = product.id
-    product_dict["name"] = product.name
-    product_dict["item_no"] = product.item_no
-    product_dict["qty"] = product.qty
-    product_dict["item_type"] = product.item_type
-
-    return product_dict
+    return {
+        "id": product.id,
+        "name": product.name,
+        "item_no": product.item_no,
+        "qty": product.qty,
+        "item_type": product.item_type
+    }
 
 def dashboard(request):
     # For later
@@ -102,6 +100,8 @@ def get_company_products(request):
 
     if len(all_products) == 0:
         return JsonResponse({ "company_error": "This company does not feature any products." })
+    
+    print("Inside get_company_products")
 
     return JsonResponse({ "company_products": all_products, "company_name": selected_company.name })
 
