@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block page_actions %}
+    <div class="container right">
+        <a href="{% url 'companies:company_create' %}" class="btn btn-blue m-10">
+            <i class="fa-solid fa-plus"></i> New Company
+        </a>
+    </div>
+{% endblock %}
+{% block content %}
+    <span class="heading">All Companies</span>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Company Name</th>
+                <th>Email</th>
+                <th>Total Products</th>
+                <th>Active Products</th>
+                <th>Created</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if companies %}
+                {% for company in companies %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'companies:company_detail' company.pk %}">{{ company.name }}</a>
+                        </td>
+                        <td>{{ company.email|default:"—" }}</td>
+                        <td>{{ company.product_count }}</td>
+                        <td>{{ company.active_product_count }}</td>
+                        <td>{{ company.created_at|date:"M d, Y" }}</td>
+                        <td>
+                            <a href="{% url 'companies:company_edit' company.pk %}"
+                               class="btn btn-sm btn-blue">Edit</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="6" class="text-center">No companies available.</td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+{% endblock %}

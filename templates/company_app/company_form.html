@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+    <div class="form-wrapper">
+        <form class="form elegant-form" method="post">
+            {% csrf_token %}
+            <div class="form-heading">
+                <i class="fa-solid fa-building"></i>
+                {% if is_update %}
+                    Edit Company
+                {% else %}
+                    Create New Company
+                {% endif %}
+            </div>
+            <div class="form-content">
+                <div class="form-group">
+                    {{ form.name.label_tag }}
+                    {{ form.name }}
+                    {% if form.name.errors %}<div class="form-error">{{ form.name.errors.0 }}</div>{% endif %}
+                </div>
+                <div class="form-group">
+                    {{ form.email.label_tag }}
+                    {{ form.email }}
+                    <small class="form-text">Optional - used for sending orders</small>
+                    {% if form.email.errors %}<div class="form-error">{{ form.email.errors.0 }}</div>{% endif %}
+                </div>
+                <div class="form-submit">
+                    <button type="submit" class="btn btn-blue">
+                        <i class="fa-solid fa-check"></i>
+                        {% if is_update %}
+                            Update
+                        {% else %}
+                            Create
+                        {% endif %}
+                        Company
+                    </button>
+                    <a href="{% if is_update %}{% url 'companies:company_detail' object.pk %}{% else %}{% url 'companies:company_list' %}{% endif %}"
+                       class="btn btn-outline">Cancel</a>
+                </div>
+            </div>
+        </form>
+    </div>
+{% endblock %}

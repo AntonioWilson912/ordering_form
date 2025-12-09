@@ -1,0 +1,576 @@
+[
+{
+  "model": "product_app.product",
+  "pk": 1,
+  "fields": {
+    "company": 1,
+    "name": "Oven Roasted Turkey Breast",
+    "item_no": "56355",
+    "qty": 0,
+    "item_type": "C",
+    "active": true,
+    "created_at": "2022-12-26T16:48:53.574Z",
+    "updated_at": "2022-12-26T16:48:53.574Z"
+  }
+},
+{
+  "model": "product_app.product",
+  "pk": 2,
+  "fields": {
+    "company": 1,
+    "name": "Peppered Turkey Breast",
+    "item_no": "56356",
+    "qty": 0,
+    "item_type": "C",
+    "active": true,
+    "created_at": "2023-01-03T00:23:58.937Z",
+    "updated_at": "2023-01-03T00:37:56.585Z"
+  }
+},
+{
+  "model": "product_app.product",
+  "pk": 3,
+  "fields": {
+    "company": 1,
+    "name": "Buffalo Turkey Breast",
+    "item_no": "56357",
+    "qty": 0,
+    "item_type": "C",
+    "active": true,
+    "created_at": "2023-01-03T00:25:03.203Z",
+    "updated_at": "2023-01-03T00:27:18.206Z"
+  }
+},
+{
+  "model": "product_app.product",
+  "pk": 4,
+  "fields": {
+    "company": 1,
+    "name": "Smoked Turkey Breast",
+    "item_no": "56342",
+    "qty": 0,
+    "item_type": "C",
+    "active": true,
+    "created_at": "2023-01-03T00:25:19.093Z",
+    "updated_at": "2023-01-03T00:25:19.093Z"
+  }
+},
+{
+  "model": "product_app.product",
+  "pk": 5,
+  "fields": {
+    "company": 1,
+    "name": "Honey BBQ Chicken Breast",
+    "item_no": "56362",
+    "qty": 0,
+    "item_type": "C",
+    "active": true,
+    "created_at": "2023-01-03T00:25:35.438Z",
+    "updated_at": "2023-01-03T00:25:35.438Z"
+  }
+},
+{
+  "model": "product_app.product",
+  "pk": 6,
+  "fields": {
+    "company": 1,
+    "name": "Italian Roast Beef",
+    "item_no": "56319",
+    "qty": 0,
+    "item_type": "C",
+    "active": true,
+    "created_at": "2023-01-03T00:28:02.283Z",
+    "updated_at": "2023-01-03T00:28:02.283Z"
+  }
+},
+{
+  "model": "product_app.product",
+  "pk": 7,
+  "fields": {
+    "company": 1,
+    "name": "Dried Beef",
+    "item_no": "47113",
+    "qty": 0,
+    "item_type": "C",
+    "active": true,
+    "created_at": "2023-01-03T00:28:16.275Z",
+    "updated_at": "2023-01-03T00:28:16.275Z"
+  }
+},
+{
+  "model": "product_app.product",
+  "pk": 8,
+  "fields": {
+    "company": 1,
+    "name": "Country Style Ham",
+    "item_no": "51203",
+    "qty": 0,
+    "item_type": "C",
+    "active": true,
+    "created_at": "2023-01-03T00:29:09.475Z",
+    "updated_at": "2023-01-03T00:29:09.475Z"
+  }
+},
+{
+  "model": "product_app.product",
+  "pk": 9,
+  "fields": {
+    "company": 1,
+    "name": "Black Forest Honey Ham",
+    "item_no": "51209",
+    "qty": 0,
+    "item_type": "C",
+    "active": true,
+    "created_at": "2023-01-03T00:29:25.797Z",
+    "updated_at": "2023-01-03T00:29:25.797Z"
+  }
+},
+{
+  "model": "product_app.product",
+  "pk": 10,
+  "fields": {
+    "company": 1,
+    "name": "Capicola Ham",
+    "item_no": "51226",
+    "qty": 0,
+    "item_type": "C",
+    "active": true,
+    "created_at": "2023-01-03T00:29:38.085Z",
+    "updated_at": "2023-01-03T00:29:38.085Z"
+  }
+},
+{
+  "model": "product_app.product",
+  "pk": 11,
+  "fields": {
+    "company": 1,
+    "name": "Premium Imported Cooked Ham",
+    "item_no": "51218",
+    "qty": 0,
+    "item_type": "C",
+    "active": true,
+    "created_at": "2023-01-03T00:29:54.827Z",
+    "updated_at": "2023-01-03T00:29:54.827Z"
+  }
+},
+{
+  "model": "product_app.product",
+  "pk": 12,
+  "fields": {
+    "company": 1,
+    "name": "Cooked Salami",
+    "item_no": "56322",
+    "qty": 0,
+    "item_type": "C",
+    "active": true,
+    "created_at": "2023-01-03T00:30:10.892Z",
+    "updated_at": "2023-01-03T00:30:10.892Z"
+  }
+},
+{
+  "model": "product_app.product",
+  "pk": 13,
+  "fields": {
+    "company": 1,
+    "name": "Pork Roll",
+    "item_no": "56320",
+    "qty": 0,
+    "item_type": "C",
+    "active": true,
+    "created_at": "2023-01-03T00:30:22.194Z",
+    "updated_at": "2023-01-03T00:30:22.194Z"
+  }
+},
+{
+  "model": "product_app.product",
+  "pk": 14,
+  "fields": {
+    "company": 1,
+    "name": "Liverwurst",
+    "item_no": "56315",
+    "qty": 0,
+    "item_type": "C",
+    "active": true,
+    "created_at": "2023-01-03T00:30:31.583Z",
+    "updated_at": "2023-01-03T00:30:31.584Z"
+  }
+},
+{
+  "model": "product_app.product",
+  "pk": 15,
+  "fields": {
+    "company": 1,
+    "name": "Lebanon Bologna",
+    "item_no": "45016",
+    "qty": 0,
+    "item_type": "C",
+    "active": true,
+    "created_at": "2023-01-03T00:30:43.563Z",
+    "updated_at": "2023-01-03T00:30:43.563Z"
+  }
+},
+{
+  "model": "product_app.product",
+  "pk": 16,
+  "fields": {
+    "company": 1,
+    "name": "Olive Loaf",
+    "item_no": "55113",
+    "qty": 0,
+    "item_type": "C",
+    "active": true,
+    "created_at": "2023-01-03T00:30:55.124Z",
+    "updated_at": "2023-01-03T00:30:55.124Z"
+  }
+},
+{
+  "model": "product_app.product",
+  "pk": 17,
+  "fields": {
+    "company": 1,
+    "name": "Pickle & Pimento Loaf",
+    "item_no": "55114",
+    "qty": 0,
+    "item_type": "C",
+    "active": true,
+    "created_at": "2023-01-03T00:31:06.989Z",
+    "updated_at": "2023-01-03T00:31:06.989Z"
+  }
+},
+{
+  "model": "product_app.product",
+  "pk": 18,
+  "fields": {
+    "company": 1,
+    "name": "Farmers Cheese",
+    "item_no": "85104",
+    "qty": 0,
+    "item_type": "C",
+    "active": true,
+    "created_at": "2023-01-03T00:31:25.529Z",
+    "updated_at": "2023-01-03T00:31:25.529Z"
+  }
+},
+{
+  "model": "product_app.product",
+  "pk": 19,
+  "fields": {
+    "company": 1,
+    "name": "JFM X-Sharp White Cheddar",
+    "item_no": "82115",
+    "qty": 0,
+    "item_type": "C",
+    "active": true,
+    "created_at": "2023-01-03T00:31:39.911Z",
+    "updated_at": "2023-01-03T00:31:39.911Z"
+  }
+},
+{
+  "model": "product_app.product",
+  "pk": 20,
+  "fields": {
+    "company": 1,
+    "name": "Slab Bacon",
+    "item_no": "30401",
+    "qty": 0,
+    "item_type": "C",
+    "active": true,
+    "created_at": "2023-01-03T00:31:52.258Z",
+    "updated_at": "2023-01-03T00:31:52.258Z"
+  }
+},
+{
+  "model": "product_app.product",
+  "pk": 21,
+  "fields": {
+    "company": 1,
+    "name": "Bacon Ends",
+    "item_no": "30362",
+    "qty": 0,
+    "item_type": "C",
+    "active": true,
+    "created_at": "2023-01-03T00:32:06.763Z",
+    "updated_at": "2023-01-03T00:32:06.763Z"
+  }
+},
+{
+  "model": "product_app.product",
+  "pk": 22,
+  "fields": {
+    "company": 1,
+    "name": "Presliced Slab Bacon",
+    "item_no": "30388",
+    "qty": 0,
+    "item_type": "C",
+    "active": true,
+    "created_at": "2023-01-03T00:32:19.180Z",
+    "updated_at": "2023-01-03T00:32:19.180Z"
+  }
+},
+{
+  "model": "product_app.product",
+  "pk": 23,
+  "fields": {
+    "company": 1,
+    "name": "Maple Bacon",
+    "item_no": "30395",
+    "qty": 0,
+    "item_type": "C",
+    "active": true,
+    "created_at": "2023-01-03T00:32:29.224Z",
+    "updated_at": "2023-01-03T00:32:29.224Z"
+  }
+},
+{
+  "model": "product_app.product",
+  "pk": 24,
+  "fields": {
+    "company": 1,
+    "name": "Low Salt Bacon",
+    "item_no": "31392",
+    "qty": 0,
+    "item_type": "C",
+    "active": true,
+    "created_at": "2023-01-03T00:32:42.934Z",
+    "updated_at": "2023-01-03T00:32:42.934Z"
+  }
+},
+{
+  "model": "product_app.product",
+  "pk": 25,
+  "fields": {
+    "company": 1,
+    "name": "Ham Hocks",
+    "item_no": "51242",
+    "qty": 0,
+    "item_type": "C",
+    "active": true,
+    "created_at": "2023-01-03T00:32:55.658Z",
+    "updated_at": "2023-01-03T00:32:55.658Z"
+  }
+},
+{
+  "model": "product_app.product",
+  "pk": 26,
+  "fields": {
+    "company": 1,
+    "name": "Smoked Ham Slices",
+    "item_no": "51241",
+    "qty": 0,
+    "item_type": "C",
+    "active": true,
+    "created_at": "2023-01-03T00:33:07.010Z",
+    "updated_at": "2023-01-03T00:33:07.010Z"
+  }
+},
+{
+  "model": "product_app.product",
+  "pk": 27,
+  "fields": {
+    "company": 1,
+    "name": "Smoked Pork Chops",
+    "item_no": "61335",
+    "qty": 0,
+    "item_type": "C",
+    "active": true,
+    "created_at": "2023-01-03T00:33:31.045Z",
+    "updated_at": "2023-01-03T00:33:31.045Z"
+  }
+},
+{
+  "model": "product_app.product",
+  "pk": 28,
+  "fields": {
+    "company": 1,
+    "name": "Scrapple",
+    "item_no": "63101",
+    "qty": 0,
+    "item_type": "C",
+    "active": true,
+    "created_at": "2023-01-03T00:33:42.593Z",
+    "updated_at": "2023-01-03T00:33:42.593Z"
+  }
+},
+{
+  "model": "product_app.product",
+  "pk": 29,
+  "fields": {
+    "company": 1,
+    "name": "Original Ring Bologna",
+    "item_no": "62513",
+    "qty": 0,
+    "item_type": "C",
+    "active": true,
+    "created_at": "2023-01-03T00:34:10.064Z",
+    "updated_at": "2023-01-03T00:34:10.064Z"
+  }
+},
+{
+  "model": "product_app.product",
+  "pk": 30,
+  "fields": {
+    "company": 1,
+    "name": "Garlic Ring Bologna",
+    "item_no": "62523",
+    "qty": 0,
+    "item_type": "C",
+    "active": true,
+    "created_at": "2023-01-03T00:34:24.887Z",
+    "updated_at": "2023-01-03T00:34:24.887Z"
+  }
+},
+{
+  "model": "product_app.product",
+  "pk": 31,
+  "fields": {
+    "company": 1,
+    "name": "Honey Ring Bologna",
+    "item_no": "61513",
+    "qty": 0,
+    "item_type": "C",
+    "active": true,
+    "created_at": "2023-01-03T00:34:38.982Z",
+    "updated_at": "2023-01-03T00:34:38.982Z"
+  }
+},
+{
+  "model": "product_app.product",
+  "pk": 32,
+  "fields": {
+    "company": 1,
+    "name": "Great Lakes Cheese Curd",
+    "item_no": "2000",
+    "qty": 0,
+    "item_type": "W",
+    "active": true,
+    "created_at": "2023-01-03T00:34:50.999Z",
+    "updated_at": "2023-01-03T00:34:50.999Z"
+  }
+},
+{
+  "model": "product_app.product",
+  "pk": 33,
+  "fields": {
+    "company": 1,
+    "name": "Amish Roll Butter",
+    "item_no": "88103",
+    "qty": 0,
+    "item_type": "C",
+    "active": true,
+    "created_at": "2023-01-03T00:35:00.243Z",
+    "updated_at": "2023-01-03T00:35:00.243Z"
+  }
+},
+{
+  "model": "product_app.product",
+  "pk": 34,
+  "fields": {
+    "company": 1,
+    "name": "Mild White Cheddar",
+    "item_no": "0970",
+    "qty": 0,
+    "item_type": "W",
+    "active": true,
+    "created_at": "2023-01-03T00:35:19.915Z",
+    "updated_at": "2025-12-10T00:55:09.987Z"
+  }
+},
+{
+  "model": "product_app.product",
+  "pk": 35,
+  "fields": {
+    "company": 1,
+    "name": "Sharp White Cheddar",
+    "item_no": "0972",
+    "qty": 0,
+    "item_type": "W",
+    "active": true,
+    "created_at": "2023-01-03T00:35:33.180Z",
+    "updated_at": "2025-12-10T00:55:01.912Z"
+  }
+},
+{
+  "model": "product_app.product",
+  "pk": 36,
+  "fields": {
+    "company": 1,
+    "name": "2 Year Sharp Cheddar",
+    "item_no": "0974",
+    "qty": 0,
+    "item_type": "W",
+    "active": true,
+    "created_at": "2023-01-03T00:35:44.596Z",
+    "updated_at": "2023-01-03T00:35:44.597Z"
+  }
+},
+{
+  "model": "product_app.product",
+  "pk": 37,
+  "fields": {
+    "company": 1,
+    "name": "4 Year Sharp Cheddar",
+    "item_no": "0976",
+    "qty": 0,
+    "item_type": "W",
+    "active": true,
+    "created_at": "2023-01-03T00:36:14.463Z",
+    "updated_at": "2023-01-03T00:36:14.463Z"
+  }
+},
+{
+  "model": "product_app.product",
+  "pk": 38,
+  "fields": {
+    "company": 1,
+    "name": "6 Year Sharp Cheddar",
+    "item_no": "0978",
+    "qty": 0,
+    "item_type": "W",
+    "active": true,
+    "created_at": "2025-12-09T14:28:20.221Z",
+    "updated_at": "2025-12-09T14:28:20.222Z"
+  }
+},
+{
+  "model": "product_app.product",
+  "pk": 39,
+  "fields": {
+    "company": 1,
+    "name": "Maple Cheddar",
+    "item_no": "",
+    "qty": 0,
+    "item_type": "W",
+    "active": true,
+    "created_at": "2025-12-09T18:57:47.660Z",
+    "updated_at": "2025-12-09T23:02:11.262Z"
+  }
+},
+{
+  "model": "product_app.product",
+  "pk": 40,
+  "fields": {
+    "company": 2,
+    "name": "Provolone Cheese 3/10 lb.",
+    "item_no": "994919",
+    "qty": 0,
+    "item_type": "C",
+    "active": true,
+    "created_at": "2025-12-09T22:25:12.540Z",
+    "updated_at": "2025-12-09T22:25:18.404Z"
+  }
+},
+{
+  "model": "product_app.product",
+  "pk": 41,
+  "fields": {
+    "company": 2,
+    "name": "Rotella Wheat Sub Rolls 6/4 pk.",
+    "item_no": "91997",
+    "qty": 0,
+    "item_type": "C",
+    "active": true,
+    "created_at": "2025-12-09T23:02:58.600Z",
+    "updated_at": "2025-12-09T23:02:58.601Z"
+  }
+}
+]

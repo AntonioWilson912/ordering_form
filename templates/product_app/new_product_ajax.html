@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+    <div class="form-wrapper">
+        <form class="form elegant-form" id="newProductForm" method="post">
+            {% csrf_token %}
+            <div class="form-heading">
+                <i class="fa-solid fa-box"></i>
+                Create a New Product
+            </div>
+            <div class="form-content">
+                <div id="companyError" class="form-error"></div>
+                <div class="form-group" id="companySelectGroup">
+                    <label for="companySelect">Choose a Company:</label>
+                    <select name="companySelect" id="companySelect" class="form-control">
+                        <option value="-1">Select a company...</option>
+                        {% for company in companies %}
+                            <option value="{{ company.id }}"
+                                    {% if selected_company_id == company.id %}selected{% endif %}>
+                                {{ company.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div id="nameError" class="form-error"></div>
+                <div class="form-group">
+                    {{ form.name.label_tag }}
+                    {{ form.name }}
+                </div>
+                <div id="itemNoError" class="form-error"></div>
+                <div class="form-group">
+                    {{ form.item_no.label_tag }}
+                    {{ form.item_no }}
+                </div>
+                <div id="itemTypeError" class="form-error"></div>
+                <div class="form-group">
+                    {{ form.item_type.label_tag }}
+                    {{ form.item_type }}
+                </div>
+                <div class="form-submit">
+                    <button type="submit" class="btn btn-blue" id="newProductSubmit">
+                        <i class="fa-solid fa-check"></i> Create Product
+                    </button>
+                    <a href="{% url 'products:product_list' %}" class="btn btn-outline">Cancel</a>
+                </div>
+            </div>
+        </form>
+    </div>
+{% endblock %}
+{% block extra_js %}
+    <script>const PRODUCT_LIST_URL = "{% url 'products:product_list' %}";</script>
+    <script src="{% static 'js/product_form_script.js' %}"></script>
+{% endblock %}

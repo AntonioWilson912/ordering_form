@@ -1,153 +1,55 @@
-from django.shortcuts import render, redirect
-from django.http import JsonResponse
+from django.views.generic import ListView, TemplateView
+from django.db import models
+from core.mixins import PageTitleMixin, LoginRequiredMixin
 from company_app.models import Company
-from .models import *
-from .forms import *
+from .models import Order
 
-# Create your views here.
-def convert_product_to_json(product):
-    return {
-        "id": product.id,
-        "name": product.name,
-        "item_no": product.item_no,
-        "qty": product.qty,
-        "item_type": product.item_type
-    }
+class OrderListView(LoginRequiredMixin, PageTitleMixin, ListView):
+    model = Order
+    template_name = 'order_app/order_list.html'
+    context_object_name = 'orders'
+    paginate_by = 20
+    page_title = 'All Orders'
 
-def dashboard(request):
-    # For later
-    # if not "user_id" in request.session:
-    #    return redirect("/")
-    context = {
-        #"logged_in_user": User.objects.get(id=request.session["user_id"])
-    }
-    return render(request, "dashboard.html", context)
+    def get_queryset(self):
+        return Order.objects.select_related('creator').prefetch_related(
+            'productorder_set__product__company'
+        ).order_by('-date')
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        orders_with_details = []
+        for order in context['orders']:
+            product_orders = order.productorder_set.select_related(
+                'product__company'
+            ).all()
 
-# Order related pages
-def new_order(request):
-    # if not "user_id" in request.session:
-    #     return redirect("/")
-    context = {
-        #"logged_in_user": User.objects.get(id=request.session["user_id"]),
-        "all_companies": Company.objects.all()
-    }
+            orders_with_details.append({
+                'order': order,
+                'items': product_orders,
+                'company': product_orders[0].product.company if product_orders else None,
+                'total_quantity': sum(po.quantity for po in product_orders)
+            })
 
-    return render(request, "new_order.html", context)
+        context['orders_with_details'] = orders_with_details
+        return context
 
-def create_order(request):
-    # if not "user_id" in request.session:
-    #     return redirect("/")
+class NewOrderView(LoginRequiredMixin, PageTitleMixin, TemplateView):
+    template_name = 'order_app/new_order.html'
+    page_title = 'Create New Order'
 
-    # Extract all the ordered_product pairs and put each pair in a list as a dictionary
-    ordered_products = []
-    ordered_products_dict_list = []
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['companies'] = Company.objects.annotate(
+            active_product_count=models.Count(
+                'company_products',
+                filter=models.Q(company_products__active=True)
+            )
+        ).filter(active_product_count__gt=0)
 
-    for key, value in request.POST.items():
-        if key.startswith("ordered_products"):
-            ordered_products.append(value)
+        # Pre-select company if specified
+        company_id = self.request.GET.get('company')
+        if company_id:
+            context['selected_company_id'] = int(company_id)
 
-    for i in range(0, len(ordered_products) - 1, 2):
-        ordered_products_dict_list.append({ ordered_products[i]: int(ordered_products[i + 1])})
-
-    if len(ordered_products_dict_list) == 0:
-        return JsonResponse({ "message": "No products were ordered." })
-
-    # Get the logged in user
-    #logged_in_user = User.objects.get(id=request.session["user_id"])
-
-    # Create an order
-    #new_order = Order.objects.create(creator=logged_in_user)
-
-    # Find the associated products
-    for ordered_product_dict in ordered_products_dict_list:
-        for product_name, product_qty in ordered_product_dict.items():
-            product_id = int(product_name.replace("product", ""))
-            current_product = Product.objects.get(id=product_id)
-
-            # Add the current product to the order
-            #ProductOrder.objects.create(product=current_product, order=new_order)
-
-            print(current_product.name, "has an order for", product_qty)
-
-
-    return JsonResponse({ "message": "Received at least one ordered product." })
-
-def view_orders(request):
-    # For later
-    # if not "user_id" in request.session:
-    #     return redirect("/")
-    context = {
-        #"logged_in_user": User.objects.get(id=request.session["user_id"])
-    }
-    return render(request, "view_orders.html", context)
-
-def get_company_products(request):
-    # For later
-    # if not "user_id" in request.session:
-    #     return redirect("/")
-    if request.POST["company_id"] == "-1":
-        return JsonResponse({"company_error": "Must select a company."})
-
-    selected_company = Company.objects.filter(id=request.POST["company_id"]).first()
-    if not selected_company:
-        return JsonResponse({"company_error": "You've reached an unknown company."})
-
-    company_products = Product.objects.filter(company=selected_company, active=True)
-    all_products = []
-    for this_product in company_products:
-        all_products.append(convert_product_to_json(this_product))
-
-    if len(all_products) == 0:
-        return JsonResponse({ "company_error": "This company does not feature any products." })
-    
-    print("Inside get_company_products")
-
-    return JsonResponse({ "company_products": all_products, "company_name": selected_company.name })
-
-# Product related pages
-def new_product(request):
-    # if not "user_id" in request.session:
-    #     return redirect("/")
-
-    context = {
-        # "logged_in_user": User.objects.get(id=request.session["user_id"])
-        "all_companies": Company.objects.all(),
-        "new_product_form": NewProductForm()
-    }
-
-    return render(request, "new_product.html", context)
-
-def create_product(request):
-    # if not "user_id" in request.session:
-        # return redirect("/")
-
-    errors = Product.objects.validate_new_product(request.POST)
-    if len(errors) > 0:
-        return JsonResponse({ "errors": errors })
-
-    selected_company = Company.objects.get(id=int(request.POST["company_id"]))
-    Product.objects.create(company=selected_company, name=request.POST["name"], item_no=request.POST["item_no"], item_type=request.POST["item_type"])
-
-    return JsonResponse({ "success": "All fields were good."})
-
-def view_products(request):
-    # For later
-    # if not "user_id" in request.session:
-    #     return redirect("/")
-
-    first_company = Company.objects.all().first()
-
-    # Get all associated products if there are any
-    company_products = Product.objects.filter(company=first_company)
-
-    all_products = Product.objects.all()
-
-    context = {
-        #"logged_in_user": User.objects.get(id=request.session["user_id"]),
-        "all_products": all_products,
-        "company": first_company,
-        "company_products": company_products
-    }
-
-    return render(request, "view_products.html", context)
+        return context

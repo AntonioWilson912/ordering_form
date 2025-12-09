@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block page_actions %}
+    <div class="container right">
+        <a href="{% url 'products:new_product' %}" class="btn btn-blue m-10">
+            <i class="fa-solid fa-plus"></i> New Product
+        </a>
+    </div>
+{% endblock %}
+{% block content %}
+    <span class="heading">All Products</span>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Company</th>
+                <th>Item No.</th>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Active?</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if products %}
+                {% for product in products %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'companies:company_detail' product.company.pk %}">{{ product.company.name }}</a>
+                        </td>
+                        <td>{{ product.item_no|default:"N/A" }}</td>
+                        <td>
+                            <a href="{% url 'products:product_detail' product.pk %}">{{ product.name }}</a>
+                        </td>
+                        <td>{{ product.get_item_type_display_name }}</td>
+                        <td>
+                            {% if product.active %}
+                                <span class="badge badge-success">Yes</span>
+                            {% else %}
+                                <span class="badge badge-danger">No</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'products:product_edit' product.pk %}"
+                               class="btn btn-sm btn-blue">Edit</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="6" class="text-center">No products available.</td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+    {% if is_paginated %}
+        <div class="pagination">
+            {% if page_obj.has_previous %}
+                <a href="?page=1" class="btn btn-blue">First</a>
+                <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-blue">Previous</a>
+            {% endif %}
+            <span class="current-page">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}" class="btn btn-blue">Next</a>
+                <a href="?page={{ page_obj.paginator.num_pages }}" class="btn btn-blue">Last</a>
+            {% endif %}
+        </div>
+    {% endif %}
+{% endblock %}

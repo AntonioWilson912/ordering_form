@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+    <div class="landing-container">
+        <h1>Welcome to Order Form</h1>
+        <p>Please log in to continue</p>
+        <div class="auth-buttons">
+            <a href="{% url 'users:login' %}" class="btn btn-blue">Login</a>
+            <a href="{% url 'users:register' %}" class="btn btn-outline">Register</a>
+        </div>
+    </div>
+{% endblock %}
+{% block extra_css %}
+    <style>
+  .landing-container {
+    text-align: center;
+    padding: 100px 20px;
+  }
+
+  .landing-container h1 {
+    font-size: 3em;
+    color: #5b83ad;
+    margin-bottom: 20px;
+  }
+
+  .landing-container p {
+    font-size: 1.5em;
+    color: #666;
+    margin-bottom: 40px;
+  }
+
+  .auth-buttons {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+  }
+
+  .btn-outline {
+    background: white;
+    color: #5b83ad;
+    border: 2px solid #5b83ad;
+  }
+
+  .btn-outline:hover {
+    background: #5b83ad;
+    color: white;
+  }
+    </style>
+{% endblock %}

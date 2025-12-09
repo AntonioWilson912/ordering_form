@@ -1,43 +1,108 @@
 from django.shortcuts import render, redirect
-from django.http import JsonResponse
+from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
+from django.contrib import messages
+from django.views.generic import ListView, TemplateView
+from django.contrib.auth.decorators import login_required
+from core.mixins import PageTitleMixin, LoginRequiredMixin
 from .models import User
 
-# Create your views here.
 def index(request):
-    return render(request, "index.html")
+    if request.user.is_authenticated:
+        return redirect('dashboard:home')
+    return render(request, "user_app/index.html")
 
 def register(request):
+    if request.user.is_authenticated:
+        return redirect('dashboard:home')
+
     if request.method == "POST":
-        # A.K.A. Process the registration data
-        pass
-    return render(request, "register.html")
+        username = request.POST.get('username')
+        email = request.POST.get('email')
+        password1 = request.POST.get('password1')
+        password2 = request.POST.get('password2')
+
+        # Basic validation
+        errors = []
+
+        if not username or len(username) < 3:
+            errors.append("Username must be at least 3 characters long.")
+
+        if User.objects.filter(username=username).exists():
+            errors.append("Username already taken.")
+
+        if not email or '@' not in email:
+            errors.append("Valid email required.")
+
+        if User.objects.filter(email=email).exists():
+            errors.append("Email already registered.")
+
+        if not password1 or len(password1) < 8:
+            errors.append("Password must be at least 8 characters long.")
+
+        if password1 != password2:
+            errors.append("Passwords do not match.")
+
+        if errors:
+            return render(request, "user_app/register.html", {
+                'errors': errors,
+                'username': username,
+                'email': email
+            })
+
+        # Create user
+        user = User.objects.create_user(
+            username=username,
+            email=email,
+            password=password1
+        )
+
+        # Log the user in
+        auth_login(request, user)
+        messages.success(request, "Registration successful!")
+        return redirect('dashboard:home')
+
+    return render(request, "user_app/register.html")
 
 def login(request):
+    if request.user.is_authenticated:
+        return redirect('dashboard:home')
+
     if request.method == "POST":
-        # A.K.A. Process the login data
-        pass
-    return render(request, "login.html")
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            auth_login(request, user)
+            next_url = request.GET.get('next', 'dashboard:home')
+            return redirect(next_url)
+        else:
+            messages.error(request, "Invalid username or password.")
+
+    return render(request, "user_app/login.html")
 
 def reset_password(request):
     if request.method == "POST":
-        # A.K.A. Process the password reset data
-        pass
-    return render(request, "reset_password.html")
+        email = request.POST.get('email')
+        # TODO: Implement password reset logic
+        messages.info(request, "If an account exists with this email, you will receive a password reset link.")
+
+    return render(request, "user_app/reset_password.html")
 
 def logout(request):
-    for key in request.session.keys():
-        del request.session[key]
+    auth_logout(request)
+    messages.success(request, "You have been logged out.")
+    return redirect("users:login")
 
-    return redirect("/")
+class UserListView(LoginRequiredMixin, PageTitleMixin, ListView):
+    model = User
+    template_name = 'user_app/user_list.html'
+    context_object_name = 'users'
+    page_title = 'All Users'
 
-def dashboard(request):
-    # if not "user_id" in request.session:
-    #     return redirect("/")
-    context = {
-        # "logged_in_user": User.objects.get(id=request.session["user_id"]),
-        "all_users": User.objects.all()
-    }
-    return render(request, "view_users.html", context)
+    def get_queryset(self):
+        return User.objects.all().order_by('username')
 
-def help(request):
-    return render(request, "help.html")
+class HelpView(LoginRequiredMixin, PageTitleMixin, TemplateView):
+    template_name = 'user_app/help.html'
+    page_title = 'Help'

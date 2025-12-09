@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+    <span class="heading">All Users</span>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Username</th>
+                <th>Created</th>
+                <th>Last Updated</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if users %}
+                {% for user in users %}
+                    <tr>
+                        <td>{{ user.username }}</td>
+                        <td>{{ user.created_at|date:"M d, Y" }}</td>
+                        <td>{{ user.updated_at|date:"M d, Y" }}</td>
+                    </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="3" class="text-center">No users available.</td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+{% endblock %}
+{% block extra_css %}
+    <style>
+  .text-center {
+    text-align: center;
+  }
+    </style>
+{% endblock %}

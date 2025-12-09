@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+    <form class="form" method="post">
+        {% csrf_token %}
+        <div class="form-heading">
+            {% if is_update %}
+                Edit Product
+            {% else %}
+                Create New Product
+            {% endif %}
+        </div>
+        <div class="form-content">
+            <div class="form-group">
+                {{ form.company.label_tag }}
+                {{ form.company }}
+                {% if form.company.errors %}<div class="form-error">{{ form.company.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="form-group">
+                {{ form.name.label_tag }}
+                {{ form.name }}
+                {% if form.name.errors %}<div class="form-error">{{ form.name.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="form-group">
+                {{ form.item_no.label_tag }}
+                {{ form.item_no }}
+                {% if form.item_no.errors %}<div class="form-error">{{ form.item_no.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="form-group">
+                {{ form.item_type.label_tag }}
+                {{ form.item_type }}
+                {% if form.item_type.errors %}<div class="form-error">{{ form.item_type.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="form-group">
+                <label class="form-check">{{ form.active }} Active</label>
+                {% if form.active.errors %}<div class="form-error">{{ form.active.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="form-submit">
+                <button type="submit" class="btn btn-blue">
+                    {% if is_update %}
+                        Update
+                    {% else %}
+                        Create
+                    {% endif %}
+                    Product
+                </button>
+                <a href="{% url 'products:product_list' %}" class="btn btn-outline">Cancel</a>
+            </div>
+        </div>
+    </form>
+{% endblock %}

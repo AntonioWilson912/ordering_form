@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+    <div class="help-container">
+        <h1 class="heading">Help & Documentation</h1>
+        <section class="help-section">
+            <h2>Getting Started</h2>
+            <p>
+                Welcome to the Order Form application. This system helps you manage
+                companies, products, and orders.
+            </p>
+        </section>
+        <section class="help-section">
+            <h2>Managing Products</h2>
+            <p>
+                Create and manage products for each company. Products can be of type
+                "Case" or "Weight".
+            </p>
+        </section>
+        <section class="help-section">
+            <h2>Creating Orders</h2>
+            <p>
+                Select a company, choose products, enter quantities, and submit your
+                order.
+            </p>
+        </section>
+        <section class="help-section">
+            <h2>Need More Help?</h2>
+            <p>Contact your system administrator for additional assistance.</p>
+        </section>
+    </div>
+{% endblock %}
+{% block extra_css %}
+    <style>
+  .help-container {
+    max-width: 800px;
+  }
+
+  .help-section {
+    margin: 30px 0;
+    padding: 20px;
+    background: white;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+  }
+
+  .help-section h2 {
+    color: #5b83ad;
+    margin-bottom: 15px;
+  }
+
+  .help-section p {
+    line-height: 1.6;
+    color: #666;
+  }
+    </style>
+{% endblock %}

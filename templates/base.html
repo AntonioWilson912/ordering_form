@@ -1,0 +1,138 @@
+{% load static %}
+{% load timezone_tags %}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>
+            {% block title %}{{ page_title|default:"Order Form" }}{% endblock %}
+        </title>
+        {% load static %}
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap"
+              rel="stylesheet">
+        <link rel="stylesheet" href="{% static 'css/custom.css' %}">
+        <script src="https://kit.fontawesome.com/1562d2a823.js"
+                crossorigin="anonymous"></script>
+        {% block extra_css %}{% endblock %}
+    </head>
+    <body>
+        <div class="wrapper">
+            <!-- Sidebar -->
+            <nav id="sidebar">
+                <div class="header">
+                    <h2>Order Form</h2>
+                    <strong>OR</strong>
+                </div>
+                <ul class="list-unstyled components">
+                    <li {% if request.resolver_match.app_name == 'dashboard' %}class="active"{% endif %}>
+                        <a href="{% url 'dashboard:home' %}">
+                            <i class="fa-solid fa-house"></i><span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li {% if request.resolver_match.app_name == 'companies' %}class="active"{% endif %}>
+                        <a href="{% url 'companies:company_list' %}">
+                            <i class="fa-solid fa-building"></i><span>Companies</span>
+                        </a>
+                    </li>
+                    <li {% if request.resolver_match.app_name == 'orders' %}class="active"{% endif %}>
+                        <a href="{% url 'orders:order_list' %}">
+                            <i class="fa-regular fa-file-lines"></i><span>Orders</span>
+                        </a>
+                    </li>
+                    <li {% if request.resolver_match.app_name == 'products' %}class="active"{% endif %}>
+                        <a href="{% url 'products:product_list' %}">
+                            <i class="fa-solid fa-database"></i><span>Products</span>
+                        </a>
+                    </li>
+                    <li {% if request.resolver_match.app_name == 'users' and 'user' in request.resolver_match.url_name %}class="active"{% endif %}>
+                        <a href="{% url 'users:user_list' %}">
+                            <i class="fa-solid fa-users"></i><span>Users</span>
+                        </a>
+                    </li>
+                    <li {% if request.resolver_match.url_name == 'help' %}class="active"{% endif %}>
+                        <a href="{% url 'users:help' %}">
+                            <i class="fa-regular fa-circle-question"></i><span>Help</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            <!-- Content -->
+            <div id="content">
+                <!-- Top Navbar -->
+                <nav class="navbar navbar-dark">
+                    <button type="button"
+                            class="btn btn-blue btn-pointer"
+                            id="toggle-sidebar-btn">
+                        <i class="fa-solid fa-angles-up" id="toggle-sidebar"></i>
+                        <span>Toggle Sidebar</span>
+                    </button>
+                    <div class="container">
+                        <p id="user-label">
+                            Logged in as:
+                            <span id="logged-in-username">
+                                {% if request.user.is_authenticated %}
+                                    {{ request.user.username }}
+                                {% else %}
+                                    Guest
+                                {% endif %}
+                            </span>
+                        </p>
+                        <div id="user-icon">
+                            <img src="{% static 'img/default_avatar.png' %}"
+                                 class="img-icon"
+                                 alt="user avatar">
+                            <i id="user-icon-chevron" class="fa-solid fa-chevron-down"></i>
+                        </div>
+                        <ul id="user-dropdown" class="list-unstyled components">
+                            {% if request.user.is_authenticated %}
+                                <li>
+                                    <a href="#">Profile</a>
+                                </li>
+                                <li>
+                                    <a href="#">Account</a>
+                                </li>
+                                <li>
+                                    <a href="{% url 'users:logout' %}">Log Out</a>
+                                </li>
+                            {% else %}
+                                <li>
+                                    <a href="{% url 'users:login' %}">Log In</a>
+                                </li>
+                                <li>
+                                    <a href="{% url 'users:register' %}">Register</a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </nav>
+                <!-- Banner for messages -->
+                {% if messages %}
+                    <div id="banner" class="banner banner-{{ messages.tags }}">
+                        {% for message in messages %}<span id="bannerText">{{ message }}</span>{% endfor %}
+                        <i id="bannerClose" class="fa-solid fa-xmark"></i>
+                    </div>
+                {% else %}
+                    <div id="banner" class="banner" style="display: none;">
+                        <span id="bannerText"></span>
+                        <i id="bannerClose" class="fa-solid fa-xmark"></i>
+                    </div>
+                {% endif %}
+                <!-- Page Actions -->
+                {% block page_actions %}{% endblock %}
+                <!-- Main Content -->
+                <div class="main">
+                    {% block content %}{% endblock %}
+                </div>
+            </div>
+        </div>
+        <script src="https://code.jquery.com/jquery-3.6.2.js"
+                integrity="sha256-pkn2CUZmheSeyssYw3vMp1+xyub4m+e+QK4sQskvuo4="
+                crossorigin="anonymous"></script>
+        <script src="{% static 'js/bar_script.js' %}"></script>
+        {% block extra_js %}{% endblock %}
+    </body>
+</html>

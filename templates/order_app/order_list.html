@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load timezone_tags %}
+{% block page_actions %}
+    <div class="container right">
+        <a href="{% url 'orders:new_order' %}" class="btn btn-blue m-10">
+            <i class="fa-solid fa-plus"></i> New Order
+        </a>
+    </div>
+{% endblock %}
+{% block content %}
+    <span class="heading">All Orders</span>
+    {% if orders_with_details %}
+        <div class="orders-container">
+            {% for item in orders_with_details %}
+                <div class="order-card">
+                    <div class="order-header">
+                        <h3>Order #{{ item.order.id }}</h3>
+                        <div class="order-meta">
+                            <span class="order-date">{{ item.order.date|user_timezone:request.user|date:"M d, Y H:i" }}</span>
+                            <div class="order-actions">
+                                <button class="order-actions-btn" data-order-id="{{ item.order.id }}">
+                                    <i class="fa-solid fa-ellipsis-vertical"></i>
+                                </button>
+                                <ul class="order-actions-menu" id="menu-{{ item.order.id }}">
+                                    <li>
+                                        <a href="#" class="edit-order" data-order-id="{{ item.order.id }}">
+                                            <i class="fa-solid fa-edit"></i> Edit
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <button class="export-csv" data-order-id="{{ item.order.id }}">
+                                            <i class="fa-solid fa-file-csv"></i> Export as CSV
+                                        </button>
+                                    </li>
+                                    <li>
+                                        <button class="email-order"
+                                                data-order-id="{{ item.order.id }}"
+                                                data-company-email="{{ item.company.email|default:'' }}">
+                                            <i class="fa-solid fa-envelope"></i> Email
+                                        </button>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="order-body">
+                        <p>
+                            <strong>Company:</strong> {{ item.company.name }}
+                        </p>
+                        <p>
+                            <strong>Created by:</strong> {{ item.order.creator.username }}
+                        </p>
+                        <p>
+                            <strong>Total Items:</strong> {{ item.total_quantity }}
+                        </p>
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Item No.</th>
+                                    <th>Product</th>
+                                    <th>Type</th>
+                                    <th>Quantity</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for po in item.items %}
+                                    <tr>
+                                        <td>{{ po.product.item_no|default:"N/A" }}</td>
+                                        <td>{{ po.product.name }}</td>
+                                        <td>{{ po.product.get_item_type_display_name }}</td>
+                                        <td>{{ po.quantity }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- Store order data for email -->
+                    <script type="application/json" class="order-data" data-order-id="{{ item.order.id }}">
+            {
+                "order_id": {{ item.order.id }},
+                "company_name": "{{ item.company.name }}",
+                "items": [
+                    {% for po in item.items %}
+                    {
+                        "product_name": "{{ po.product.name }}",
+                        "item_no": "{{ po.product.item_no|default:'' }}",
+                        "item_type": "{{ po.product.item_type }}",
+                        "quantity": {{ po.quantity }}
+                    }{% if not forloop.last %},{% endif %}
+                    {% endfor %}
+                ]
+            }
+                    </script>
+                </div>
+            {% endfor %}
+        </div>
+        <!-- Pagination -->
+        {% if is_paginated %}
+            <div class="pagination">
+                {% if page_obj.has_previous %}
+                    <a href="?page=1" class="btn btn-blue">First</a>
+                    <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-blue">Previous</a>
+                {% endif %}
+                <span class="current-page">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}" class="btn btn-blue">Next</a>
+                    <a href="?page={{ page_obj.paginator.num_pages }}" class="btn btn-blue">Last</a>
+                {% endif %}
+            </div>
+        {% endif %}
+    {% else %}
+        <p class="no-data">No orders have been created yet.</p>
+    {% endif %}
+    <!-- Add CSRF token for AJAX requests -->
+    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+{% endblock %}
+{% block extra_js %}
+    <script src="{% static 'js/email_composer.js' %}"></script>
+    <script>
+$(document).ready(function() {
+    // Toggle order actions menu
+    $('.order-actions-btn').click(function(e) {
+        e.stopPropagation();
+        const orderId = $(this).data('order-id');
+        const menu = $(`#menu-${orderId}`);
+
+        // Close all other menus
+        $('.order-actions-menu').not(menu).removeClass('show');
+
+        // Toggle current menu
+        menu.toggleClass('show');
+    });
+
+    // Close menu when clicking outside
+    $(document).click(function() {
+        $('.order-actions-menu').removeClass('show');
+    });
+
+    // Email order
+    $('.email-order').click(function() {
+        const orderId = $(this).data('order-id');
+        const companyEmail = $(this).data('company-email');
+        const orderDataElement = $(`.order-data[data-order-id="${orderId}"]`);
+        const orderData = JSON.parse(orderDataElement.text());
+
+        // Get user email
+        const userEmail = "{{ request.user.email|default:'' }}";
+
+        emailComposer.open(orderData, companyEmail, userEmail);
+    });
+
+    // Export as CSV
+    $('.export-csv').click(function() {
+        const orderId = $(this).data('order-id');
+        window.location.href = `/api/orders/${orderId}/export-csv/`;
+    });
+
+    // Edit order
+    $('.edit-order').click(function(e) {
+        e.preventDefault();
+        const orderId = $(this).data('order-id');
+        alert(`Edit functionality for order ${orderId} coming soon...`);
+    });
+});
+    </script>
+{% endblock %}

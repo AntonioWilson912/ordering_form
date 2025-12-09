@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+    <div class="detail-header">
+        <h1 class="heading">{{ company.name }}</h1>
+        <div class="detail-actions">
+            <a href="{% url 'companies:company_edit' company.pk %}"
+               class="btn btn-blue">
+                <i class="fa-solid fa-edit"></i> Edit
+            </a>
+            <a href="{% url 'orders:new_order' %}?company={{ company.pk }}"
+               class="btn btn-orange">
+                <i class="fa-solid fa-shopping-cart"></i> Create Order
+            </a>
+            <a href="{% url 'products:new_product' %}?company={{ company.pk }}"
+               class="btn btn-green">
+                <i class="fa-solid fa-plus"></i> Add Product
+            </a>
+        </div>
+    </div>
+    <div class="detail-info">
+        <h3>Company Information</h3>
+        <p>
+            <strong>Name:</strong> {{ company.name }}
+        </p>
+        <p>
+            <strong>Email:</strong> {{ company.email|default:"Not provided" }}
+        </p>
+        <p>
+            <strong>Created:</strong> {{ company.created_at|date:"M d, Y" }}
+        </p>
+        <p>
+            <strong>Total Products:</strong> {{ products.count }}
+        </p>
+    </div>
+    <h3 class="mb-20">Products</h3>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Item No.</th>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Active</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if products %}
+                {% for product in products %}
+                    <tr>
+                        <td>{{ product.item_no|default:"N/A" }}</td>
+                        <td>{{ product.name }}</td>
+                        <td>{{ product.get_item_type_display_name }}</td>
+                        <td>
+                            {% if product.active %}
+                                <span class="badge badge-success">Yes</span>
+                            {% else %}
+                                <span class="badge badge-danger">No</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'products:product_edit' product.pk %}"
+                               class="btn btn-sm btn-blue">Edit</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="5" class="text-center">No products for this company.</td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+{% endblock %}

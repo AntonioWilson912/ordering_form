@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+    <form class="form" id="newProductForm" method="post">
+        {% csrf_token %}
+        <span class="form-heading">Create a New Product</span>
+        <div id="companyError" class="form-error"></div>
+        <div class="form-group" id="companySelectGroup">
+            <label for="companySelect">Choose a Company:</label>
+            <select name="companySelect" id="companySelect" class="form-control">
+                <option value="-1">Select a company...</option>
+                {% for company in companies %}<option value="{{ company.id }}">{{ company.name }}</option>{% endfor %}
+            </select>
+        </div>
+        <div id="nameError" class="form-error"></div>
+        <div class="form-group">{{ form.name.label_tag }} {{ form.name }}</div>
+        <div id="itemNoError" class="form-error"></div>
+        <div class="form-group">{{ form.item_no.label_tag }} {{ form.item_no }}</div>
+        <div id="itemTypeError" class="form-error"></div>
+        <div class="form-group">{{ form.item_type.label_tag }} {{ form.item_type }}</div>
+        <div class="form-submit">
+            <input class="btn btn-blue"
+                   type="submit"
+                   id="newProductSubmit"
+                   value="Create Product" />
+        </div>
+    </form>
+{% endblock %}
+{% block extra_js %}
+    <script>const PRODUCT_LIST_URL = "{% url 'products:product_list' %}";</script>
+    <script src="{% static 'js/product_form_script.js' %}"></script>
+{% endblock %}

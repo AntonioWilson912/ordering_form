@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+    <div class="detail-header">
+        <h1 class="heading">{{ product.name }}</h1>
+        <div class="detail-actions">
+            <a href="{% url 'products:product_edit' product.pk %}"
+               class="btn btn-blue">
+                <i class="fa-solid fa-edit"></i> Edit
+            </a>
+            <a href="{% url 'products:product_list' %}" class="btn btn-outline">Back to Products</a>
+        </div>
+    </div>
+    <div class="detail-info">
+        <h3>Product Information</h3>
+        <p>
+            <strong>Company:</strong>
+            <a href="{% url 'companies:company_detail' product.company.pk %}">{{ product.company.name }}</a>
+        </p>
+        <p>
+            <strong>Item Number:</strong> {{ product.item_no|default:"Not specified" }}
+        </p>
+        <p>
+            <strong>Item Type:</strong> {{ product.get_item_type_display_name }}
+        </p>
+        <p>
+            <strong>Status:</strong>
+            {% if product.active %}
+                <span class="badge badge-success">Active</span>
+            {% else %}
+                <span class="badge badge-danger">Inactive</span>
+            {% endif %}
+        </p>
+        <p>
+            <strong>Created:</strong> {{ product.created_at|date:"M d, Y H:i" }}
+        </p>
+        <p>
+            <strong>Last Updated:</strong> {{ product.updated_at|date:"M d, Y H:i" }}
+        </p>
+    </div>
+{% endblock %}
