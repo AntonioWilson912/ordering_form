@@ -1,11 +1,8 @@
 $(document).ready(function () {
   console.log("Product form script loaded.");
 
-  $("#bannerClose").click(function () {
-    $("#banner").hide();
-  });
-
-  $("#banner").hide();
+  // Hide initial banner
+  $(".banner").hide();
   $(".form-error").hide();
 
   $("#newProductForm").submit(function (e) {
@@ -26,18 +23,13 @@ $(document).ready(function () {
       },
       success: function (data) {
         if (data.success === false && data.errors) {
-          // Show banner with general error
-          $("#banner")
-            .addClass("banner-warning")
-            .removeClass("banner-success")
-            .show();
-          $("#bannerText").text("Please correct the errors below.");
+          showBanner("Please correct the errors below.", "warning");
 
           // Show specific field errors
-          $(".form-error").hide(); // Hide all errors first
+          $(".form-error").hide();
 
-          if (data.errors.company_error) {
-            $("#companyError").text(data.errors.company_error).show();
+          if (data.errors.company_id_error) {
+            $("#companyError").text(data.errors.company_id_error).show();
           }
           if (data.errors.name_error) {
             $("#nameError").text(data.errors.name_error).show();
@@ -48,20 +40,8 @@ $(document).ready(function () {
           if (data.errors.item_type_error) {
             $("#itemTypeError").text(data.errors.item_type_error).show();
           }
-
-          // Scroll to banner
-          $("html, body").animate(
-            {
-              scrollTop: $("#banner").offset().top - 100,
-            },
-            300
-          );
         } else if (data.success) {
-          $("#banner")
-            .addClass("banner-success")
-            .removeClass("banner-warning")
-            .show();
-          $("#bannerText").text("Your product was created successfully.");
+          showBanner("Your product was created successfully.", "success");
           $("#newProductForm").trigger("reset");
           $(".form-error").hide();
 
@@ -75,17 +55,12 @@ $(document).ready(function () {
         const errorData = xhr.responseJSON;
 
         if (errorData && errorData.errors) {
-          // Handle validation errors
-          $("#banner")
-            .addClass("banner-warning")
-            .removeClass("banner-success")
-            .show();
-          $("#bannerText").text("Please correct the errors below.");
+          showBanner("Please correct the errors below.", "warning");
 
           $(".form-error").hide();
 
-          if (errorData.errors.company_error) {
-            $("#companyError").text(errorData.errors.company_error).show();
+          if (errorData.errors.company_id_error) {
+            $("#companyError").text(errorData.errors.company_id_error).show();
           }
           if (errorData.errors.name_error) {
             $("#nameError").text(errorData.errors.name_error).show();
@@ -97,21 +72,9 @@ $(document).ready(function () {
             $("#itemTypeError").text(errorData.errors.item_type_error).show();
           }
         } else {
-          // Generic error
           const errorMsg = errorData?.message || "An error occurred";
-          $("#banner")
-            .addClass("banner-warning")
-            .removeClass("banner-success")
-            .show();
-          $("#bannerText").text(errorMsg);
+          showBanner(errorMsg, "warning");
         }
-
-        $("html, body").animate(
-          {
-            scrollTop: $("#banner").offset().top - 100,
-          },
-          300
-        );
       },
     });
   });

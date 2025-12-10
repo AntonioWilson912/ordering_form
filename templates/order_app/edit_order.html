@@ -13,17 +13,22 @@
             <div class="form-content">
                 <div class="order-info-summary">
                     <p>
-                        <strong>Company:</strong> {{ company.name }}
+                        <strong>Company:</strong>
+                        <a href="{% url 'companies:company_detail' company.pk %}">{{ company.name }}</a>
+                        {% if not company.is_active %}<span class="badge badge-warning">Company Inactive</span>{% endif %}
                     </p>
                     <p>
                         <strong>Created:</strong> {% user_datetime order.created_at request.user "F d, Y g:i A" %}
+                    </p>
+                    <p>
+                        <strong>Last Updated:</strong> {% user_datetime order.updated_at request.user "F d, Y g:i A" %}
                     </p>
                     <p>
                         <strong>Created by:</strong> {{ order.creator.username }}
                     </p>
                 </div>
                 {% if products %}
-                    <table class="table table-striped">
+                    <table class="table table-striped" id="productsTable">
                         <caption>Products from {{ company.name }}</caption>
                         <thead>
                             <tr>
@@ -35,20 +40,22 @@
                         </thead>
                         <tbody>
                             {% for product in products %}
-                                <tr class="{% if product.id in current_quantities %}in-order{% endif %}">
-                                    <td>{{ product.item_no|default:"N/A" }}</td>
-                                    <td>{{ product.name }}</td>
-                                    <td>{{ product.get_item_type_display_name }}</td>
-                                    <td>
-                                        <input type="number"
-                                               name="product_{{ product.id }}"
-                                               id="product_{{ product.id }}"
-                                               value="{{ current_quantities|default_if_none:0 }}"
-                                               data-initial="{{ current_quantities|default_if_none:0 }}"
-                                               min="0"
-                                               class="form-control quantity-input">
-                                    </td>
-                                </tr>
+                                {% with qty=current_quantities|default_if_none:0 %}
+                                    <tr class="{% if product.id in current_quantities %}in-order{% endif %}">
+                                        <td>{{ product.item_no|default:"N/A" }}</td>
+                                        <td>{{ product.name }}</td>
+                                        <td>{{ product.get_item_type_display_name }}</td>
+                                        <td>
+                                            <input type="number"
+                                                   name="product_{{ product.id }}"
+                                                   id="product_{{ product.id }}"
+                                                   value="0"
+                                                   min="0"
+                                                   class="form-control quantity-input"
+                                                   data-product-id="{{ product.id }}">
+                                        </td>
+                                    </tr>
+                                {% endwith %}
                             {% endfor %}
                         </tbody>
                     </table>
@@ -88,9 +95,18 @@
         background-color: #e8f4fd !important;
     }
 
+    tr.in-order:hover {
+        background-color: #d4e9f7 !important;
+    }
+
     .quantity-input.changed {
         border-color: #ff8c42;
         background-color: #fff8f0;
+    }
+
+    .quantity-input.has-value {
+        font-weight: 700;
+        color: #5b83ad;
     }
     </style>
 {% endblock %}
@@ -99,18 +115,30 @@
 const ORDER_LIST_URL = "{% url 'orders:order_list' %}";
 const UPDATE_URL = "/api/orders/{{ order.id }}/update/";
 
-// Set initial values from current quantities
+// Current quantities from the order
 const currentQuantities = {
     {% for product_id, qty in current_quantities.items %}
-    '{{ product_id }}': {{ qty }}{% if not forloop.last %},{% endif %}
+    {{ product_id }}: {{ qty }}{% if not forloop.last %},{% endif %}
     {% endfor %}
 };
 
 $(document).ready(function() {
-    // Set initial values
+    // Set initial values from current quantities
     for (const [productId, qty] of Object.entries(currentQuantities)) {
-        $(`#product_${productId}`).val(qty).attr('data-initial', qty);
+        const input = $(`#product_${productId}`);
+        input.val(qty);
+        input.attr('data-initial', qty);
+        if (qty > 0) {
+            input.addClass('has-value');
+        }
     }
+
+    // Initialize data-initial for products not in order
+    $('.quantity-input').each(function() {
+        if (!$(this).attr('data-initial')) {
+            $(this).attr('data-initial', 0);
+        }
+    });
 
     // Track changes
     $('.quantity-input').on('input', function() {
@@ -121,6 +149,14 @@ $(document).ready(function() {
             $(this).addClass('changed');
         } else {
             $(this).removeClass('changed');
+        }
+
+        if (current > 0) {
+            $(this).addClass('has-value');
+            $(this).closest('tr').addClass('in-order');
+        } else {
+            $(this).removeClass('has-value');
+            $(this).closest('tr').removeClass('in-order');
         }
     });
 
@@ -144,6 +180,9 @@ $(document).ready(function() {
             return;
         }
 
+        // Disable submit button
+        $('#saveOrderBtn').prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin"></i> Saving...');
+
         $.ajax({
             type: 'POST',
             url: UPDATE_URL,
@@ -159,26 +198,16 @@ $(document).ready(function() {
                     }, 1500);
                 } else {
                     showBanner(data.message || 'Failed to update order', 'warning');
+                    $('#saveOrderBtn').prop('disabled', false).html('<i class="fa-solid fa-save"></i> Save Changes');
                 }
             },
             error: function(xhr) {
                 const errorMsg = xhr.responseJSON?.message || 'An error occurred';
                 showBanner(errorMsg, 'warning');
+                $('#saveOrderBtn').prop('disabled', false).html('<i class="fa-solid fa-save"></i> Save Changes');
             }
         });
     });
-
-    function showBanner(message, type) {
-        $('#bannerText').text(message);
-        $('#banner')
-            .removeClass('banner-success banner-warning banner-info')
-            .addClass(`banner-${type}`)
-            .show();
-
-        $('html, body').animate({
-            scrollTop: $('#banner').offset().top - 100
-        }, 300);
-    }
 });
     </script>
 {% endblock %}

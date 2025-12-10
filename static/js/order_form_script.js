@@ -1,11 +1,8 @@
 $(document).ready(function () {
   console.log("Order form script loaded.");
 
-  $("#bannerClose").click(function () {
-    $("#banner").hide();
-  });
-
-  $("#banner").hide();
+  // Hide banner initially (use JS banner for this page)
+  $(".banner").hide();
 
   // Company selection handler
   $("#companySelect").change(function (e) {
@@ -40,7 +37,6 @@ $(document).ready(function () {
         renderProductTable(data.company_name, data.products);
         $("#newOrderSubmit").show();
         $("#companySelectGroup").hide();
-        $("#banner").hide();
       },
       error: function (xhr) {
         const errorMsg = xhr.responseJSON?.message || "An error occurred";
@@ -105,60 +101,43 @@ $(document).ready(function () {
   // Helper function to render product table
   function renderProductTable(companyName, products) {
     let html = `
-            <table class="table table-striped">
-                <caption>New Order for ${companyName}</caption>
-                <thead>
-                    <tr>
-                        <th>Item No.</th>
-                        <th>Name</th>
-                        <th>Type</th>
-                        <th>Quantity</th>
-                    </tr>
-                </thead>
-                <tbody>
-        `;
+      <table class="table table-striped">
+        <caption>New Order for ${companyName}</caption>
+        <thead>
+          <tr>
+            <th>Item No.</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Quantity</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
 
     products.forEach((product) => {
       const itemType = product.item_type === "W" ? "Weight" : "Case";
       html += `
-                <tr>
-                    <td>${product.item_no || "N/A"}</td>
-                    <td>${product.name}</td>
-                    <td>${itemType}</td>
-                    <td>
-                        <input type="number"
-                               name="product_${product.id}"
-                               id="product_${product.id}"
-                               value="0"
-                               min="0"
-                               class="form-control quantity-input">
-                    </td>
-                </tr>
-            `;
+        <tr>
+          <td>${product.item_no || "N/A"}</td>
+          <td>${product.name}</td>
+          <td>${itemType}</td>
+          <td>
+            <input type="number"
+                   name="product_${product.id}"
+                   id="product_${product.id}"
+                   value="0"
+                   min="0"
+                   class="form-control quantity-input">
+          </td>
+        </tr>
+      `;
     });
 
     html += `
-                </tbody>
-            </table>
-        `;
+        </tbody>
+      </table>
+    `;
 
     $("#productForm").html(html).show();
-  }
-
-  // Helper function to show banner messages
-  function showBanner(message, type) {
-    $("#bannerText").text(message);
-    $("#banner")
-      .removeClass("banner-success banner-warning")
-      .addClass(`banner-${type}`)
-      .show();
-
-    // Scroll to banner
-    $("html, body").animate(
-      {
-        scrollTop: $("#banner").offset().top - 100,
-      },
-      300
-    );
   }
 });

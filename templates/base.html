@@ -106,19 +106,21 @@
                     </div>
                 </nav>
                 <!-- Banner for Django messages -->
-                {% if messages %}
-                    {% for message in messages %}
-                        <div id="banner" class="banner banner-{{ message.tags|default:'info' }}">
-                            <span id="bannerText">{{ message }}</span>
-                            <i id="bannerClose" class="fa-solid fa-xmark"></i>
-                        </div>
-                    {% endfor %}
-                {% else %}
-                    <div id="banner" class="banner" style="display: none;">
-                        <span id="bannerText"></span>
-                        <i id="bannerClose" class="fa-solid fa-xmark"></i>
-                    </div>
-                {% endif %}
+                <div id="banner-container">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="banner banner-{{ message.tags|default:'info' }}">
+                                <span class="banner-text">{{ message }}</span>
+                                <i class="banner-close fa-solid fa-xmark"></i>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+                <!-- Hidden banner for JS use -->
+                <div id="js-banner" class="banner" style="display: none;">
+                    <span id="js-banner-text"></span>
+                    <i class="banner-close fa-solid fa-xmark"></i>
+                </div>
                 <!-- Page Actions -->
                 {% block page_actions %}{% endblock %}
                 <!-- Main Content -->

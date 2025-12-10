@@ -17,27 +17,27 @@
                     <div class="order-header">
                         <h3>Order #{{ item.order.id }}</h3>
                         <div class="order-meta">
-                            <span class="order-date">{{ item.order.date|user_timezone:request.user|date:"M d, Y H:i" }}</span>
+                            <span class="order-date">{% user_datetime item.order.date request.user "M d, Y g:i A" %}</span>
                             <div class="order-actions">
                                 <button class="order-actions-btn" data-order-id="{{ item.order.id }}">
                                     <i class="fa-solid fa-ellipsis-vertical"></i>
                                 </button>
                                 <ul class="order-actions-menu" id="menu-{{ item.order.id }}">
                                     <li>
-                                        <a href="#" class="edit-order" data-order-id="{{ item.order.id }}">
-                                            <i class="fa-solid fa-edit"></i> Edit
+                                        <a href="{% url 'orders:edit_order' item.order.id %}">
+                                            <i class="fa-solid fa-edit"></i> Edit Order
                                         </a>
                                     </li>
                                     <li>
                                         <button class="export-csv" data-order-id="{{ item.order.id }}">
-                                            <i class="fa-solid fa-file-csv"></i> Export as CSV
+                                            <i class="fa-solid fa-file-csv"></i> Export CSV
                                         </button>
                                     </li>
                                     <li>
                                         <button class="email-order"
                                                 data-order-id="{{ item.order.id }}"
                                                 data-company-email="{{ item.company.email|default:'' }}">
-                                            <i class="fa-solid fa-envelope"></i> Email
+                                            <i class="fa-solid fa-envelope"></i> Send Email
                                         </button>
                                     </li>
                                 </ul>
@@ -46,7 +46,9 @@
                     </div>
                     <div class="order-body">
                         <p>
-                            <strong>Company:</strong> {{ item.company.name }}
+                            <strong>Company:</strong>
+                            <a href="{% url 'companies:company_detail' item.company.pk %}">{{ item.company.name }}</a>
+                            {% if not item.company.is_active %}<span class="badge badge-warning">Inactive</span>{% endif %}
                         </p>
                         <p>
                             <strong>Created by:</strong> {{ item.order.creator.username }}
@@ -75,6 +77,22 @@
                             </tbody>
                         </table>
                     </div>
+                    <!-- Order actions row -->
+                    <div class="order-footer">
+                        <a href="{% url 'orders:edit_order' item.order.id %}"
+                           class="btn btn-blue btn-sm">
+                            <i class="fa-solid fa-edit"></i> Edit
+                        </a>
+                        <button class="btn btn-outline btn-sm export-csv"
+                                data-order-id="{{ item.order.id }}">
+                            <i class="fa-solid fa-file-csv"></i> Export
+                        </button>
+                        <button class="btn btn-green btn-sm email-order"
+                                data-order-id="{{ item.order.id }}"
+                                data-company-email="{{ item.company.email|default:'' }}">
+                            <i class="fa-solid fa-envelope"></i> Email
+                        </button>
+                    </div>
                     <!-- Store order data for email -->
                     <script type="application/json" class="order-data" data-order-id="{{ item.order.id }}">
         {
@@ -99,21 +117,35 @@
         {% if is_paginated %}
             <div class="pagination">
                 {% if page_obj.has_previous %}
-                    <a href="?page=1" class="btn btn-blue">First</a>
-                    <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-blue">Previous</a>
+                    <a href="?page=1" class="btn btn-blue btn-sm">First</a>
+                    <a href="?page={{ page_obj.previous_page_number }}"
+                       class="btn btn-blue btn-sm">Previous</a>
                 {% endif %}
                 <span class="current-page">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
                 {% if page_obj.has_next %}
-                    <a href="?page={{ page_obj.next_page_number }}" class="btn btn-blue">Next</a>
-                    <a href="?page={{ page_obj.paginator.num_pages }}" class="btn btn-blue">Last</a>
+                    <a href="?page={{ page_obj.next_page_number }}"
+                       class="btn btn-blue btn-sm">Next</a>
+                    <a href="?page={{ page_obj.paginator.num_pages }}"
+                       class="btn btn-blue btn-sm">Last</a>
                 {% endif %}
             </div>
         {% endif %}
     {% else %}
         <p class="no-data">No orders have been created yet.</p>
     {% endif %}
-    <!-- Add CSRF token for AJAX requests -->
+    <!-- CSRF token for AJAX -->
     <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+{% endblock %}
+{% block extra_css %}
+    <style>
+    .order-footer {
+        display: flex;
+        gap: 10px;
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 1px solid #e0e0e0;
+    }
+    </style>
 {% endblock %}
 {% block extra_js %}
     <script src="{% static 'js/email_composer.js' %}"></script>
@@ -137,7 +169,7 @@ $(document).ready(function() {
         $('.order-actions-menu').removeClass('show');
     });
 
-    // Email order - no longer passing user email, server handles it
+    // Email order
     $('.email-order').click(function() {
         const orderId = $(this).data('order-id');
         const companyEmail = $(this).data('company-email');
@@ -151,13 +183,6 @@ $(document).ready(function() {
     $('.export-csv').click(function() {
         const orderId = $(this).data('order-id');
         window.location.href = `/api/orders/${orderId}/export-csv/`;
-    });
-
-    // Edit order
-    $('.edit-order').click(function(e) {
-        e.preventDefault();
-        const orderId = $(this).data('order-id');
-        alert(`Edit functionality for order ${orderId} coming soon...`);
     });
 });
     </script>

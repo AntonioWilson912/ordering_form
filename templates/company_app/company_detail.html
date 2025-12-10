@@ -2,16 +2,21 @@
 {% load static %}
 {% block content %}
     <div class="detail-header">
-        <h1 class="heading">{{ company.name }}</h1>
+        <h1 class="heading">
+            {{ company.name }}
+            {% if not company.is_active %}<span class="badge badge-danger">Inactive</span>{% endif %}
+        </h1>
         <div class="detail-actions">
             <a href="{% url 'companies:company_edit' company.pk %}"
                class="btn btn-blue">
                 <i class="fa-solid fa-edit"></i> Edit
             </a>
-            <a href="{% url 'orders:new_order' %}?company={{ company.pk }}"
-               class="btn btn-orange">
-                <i class="fa-solid fa-shopping-cart"></i> Create Order
-            </a>
+            {% if company.is_active %}
+                <a href="{% url 'orders:new_order' %}?company={{ company.pk }}"
+                   class="btn btn-orange">
+                    <i class="fa-solid fa-shopping-cart"></i> Create Order
+                </a>
+            {% endif %}
             <a href="{% url 'products:new_product' %}?company={{ company.pk }}"
                class="btn btn-green">
                 <i class="fa-solid fa-plus"></i> Add Product
@@ -27,6 +32,15 @@
             <strong>Email:</strong> {{ company.email|default:"Not provided" }}
         </p>
         <p>
+            <strong>Status:</strong>
+            {% if company.is_active %}
+                <span class="badge badge-success">Active</span>
+            {% else %}
+                <span class="badge badge-danger">Inactive</span>
+                <small class="form-text">This company will not appear in order creation.</small>
+            {% endif %}
+        </p>
+        <p>
             <strong>Created:</strong> {{ company.created_at|date:"M d, Y" }}
         </p>
         <p>
@@ -40,7 +54,7 @@
                 <th>Item No.</th>
                 <th>Name</th>
                 <th>Type</th>
-                <th>Active</th>
+                <th>Status</th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -49,13 +63,15 @@
                 {% for product in products %}
                     <tr>
                         <td>{{ product.item_no|default:"N/A" }}</td>
-                        <td>{{ product.name }}</td>
+                        <td>
+                            <a href="{% url 'products:product_detail' product.pk %}">{{ product.name }}</a>
+                        </td>
                         <td>{{ product.get_item_type_display_name }}</td>
                         <td>
                             {% if product.active %}
-                                <span class="badge badge-success">Yes</span>
+                                <span class="badge badge-success">Active</span>
                             {% else %}
-                                <span class="badge badge-danger">No</span>
+                                <span class="badge badge-danger">Inactive</span>
                             {% endif %}
                         </td>
                         <td>

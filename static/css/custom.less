@@ -62,7 +62,7 @@ body {
 // ============================================================================
 // === IMPROVED LINK STYLES ===
 // ============================================================================
-a {
+a:not(.btn) {
   color: @nice-blue;
   text-decoration: none;
   transition: @transition;
@@ -70,7 +70,6 @@ a {
 
   &:hover {
     color: darken(@nice-blue, 15%);
-    text-decoration: none;
   }
 
   &:focus {
@@ -79,45 +78,66 @@ a {
   }
 }
 
-// Links within content areas
-.main {
+// Table links - styled with underline animation
+.table {
+  tbody {
+    a:not(.btn) {
+      color: @nice-blue;
+      font-weight: 600;
+      position: relative;
+      display: inline-block;
+
+      &::after {
+        content: "";
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        width: 0;
+        height: 2px;
+        background-color: @nice-blue;
+        transition: width 0.3s ease;
+      }
+
+      &:hover {
+        color: darken(@nice-blue, 10%);
+
+        &::after {
+          width: 100%;
+        }
+      }
+    }
+  }
+}
+
+// Detail info links
+.detail-info {
   a:not(.btn) {
     color: @nice-blue;
-    border-bottom: 1px solid transparent;
-    transition: @transition;
+    font-weight: 600;
+    border-bottom: 1px dashed @nice-blue;
 
     &:hover {
-      color: darken(@nice-blue, 15%);
-      border-bottom-color: @nice-blue;
+      color: @nice-orange;
+      border-bottom-color: @nice-orange;
     }
   }
 }
 
-// Table links
-.table {
-  a {
-    color: @nice-blue;
-    font-weight: 600;
-    position: relative;
+// Order card links
+.order-card {
+  .order-body {
+    a:not(.btn) {
+      color: @nice-blue;
+      font-weight: 600;
 
-    &::after {
-      content: "";
-      position: absolute;
-      bottom: -2px;
-      left: 0;
-      width: 0;
-      height: 2px;
-      background-color: @nice-blue;
-      transition: width 0.3s ease;
-    }
-
-    &:hover::after {
-      width: 100%;
+      &:hover {
+        color: @nice-orange;
+      }
     }
   }
 }
 
-// Auth links
+// Auth page links
 .auth-links {
   a {
     color: @nice-blue;
@@ -129,10 +149,8 @@ a {
   }
 }
 
-// Navigation links in cards
-.order-card,
-.settings-card,
-.detail-info {
+// Settings card links
+.settings-card {
   a:not(.btn) {
     color: @nice-blue;
     font-weight: 600;
@@ -143,23 +161,61 @@ a {
   }
 }
 
-// Breadcrumb-style links
-.breadcrumb-link {
-  color: @medium-gray;
-  font-size: 0.9rem;
+// Sidebar links - override to keep white
+#sidebar {
+  ul.list-unstyled.components li a {
+    color: @white;
+    border-bottom: none;
 
-  &:hover {
-    color: @nice-blue;
+    &:hover {
+      color: @white;
+    }
+
+    &::after {
+      display: none;
+    }
   }
+}
 
+// User dropdown links - override to keep white
+#user-dropdown {
+  li a {
+    color: @white;
+    border-bottom: none;
+
+    &:hover {
+      color: @white;
+    }
+
+    &::after {
+      display: none;
+    }
+  }
+}
+
+// Order actions menu links - reset styles
+.order-actions-menu {
+  li {
+    a,
+    button {
+      color: @dark-gray;
+
+      &::after {
+        display: none;
+      }
+
+      &:hover {
+        color: @dark-gray;
+        background-color: @lightest-gray;
+      }
+    }
+  }
+}
+
+// Ensure buttons never get link underline styles
+.btn {
   &::after {
-    content: "›";
-    margin: 0 @spacing-10;
-    color: @light-gray;
-  }
-
-  &:last-child::after {
-    display: none;
+    display: none !important;
   }
 }
 
@@ -413,6 +469,11 @@ body.sidebar-collapsed #content {
 }
 
 // === Banner ===
+// === Banner ===
+#banner-container {
+  // Container for multiple banners
+}
+
 .banner {
   padding: @spacing-15 @spacing-20;
   display: flex;
@@ -424,6 +485,14 @@ body.sidebar-collapsed #content {
   animation: slideDown 0.3s ease;
   background-color: @light-gray;
   color: @dark-gray;
+
+  &:first-child {
+    margin-top: @spacing-15;
+  }
+
+  & + .banner {
+    margin-top: @spacing-10;
+  }
 
   &.banner-warning,
   &.banner-error {
@@ -444,6 +513,21 @@ body.sidebar-collapsed #content {
   &.banner-debug {
     background-color: @medium-gray;
     color: @white;
+  }
+
+  .banner-text {
+    flex: 1;
+  }
+
+  .banner-close {
+    cursor: pointer;
+    font-size: 1.2rem;
+    transition: @transition;
+    margin-left: @spacing-15;
+
+    &:hover {
+      transform: scale(1.2);
+    }
   }
 }
 
@@ -973,6 +1057,15 @@ body.sidebar-collapsed #content {
   }
 }
 
+.order-footer {
+  display: flex;
+  gap: @spacing-10;
+  margin-top: @spacing-15;
+  padding-top: @spacing-15;
+  border-top: 1px solid @lighter-gray;
+  flex-wrap: wrap;
+}
+
 .order-actions {
   position: relative;
   display: flex;
@@ -1005,16 +1098,20 @@ body.sidebar-collapsed #content {
     border: 1px solid @lighter-gray;
     border-radius: @border-radius;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    min-width: 150px;
+    min-width: 160px;
     z-index: 100;
     list-style: none;
     padding: 0;
+    margin: 0;
 
     &.show {
       display: block;
     }
 
     li {
+      margin: 0;
+      padding: 0;
+
       a,
       button {
         display: flex;
@@ -1031,18 +1128,27 @@ body.sidebar-collapsed #content {
         transition: @transition;
         font-size: 0.95rem;
         font-weight: 500;
+        font-family: "Quicksand", sans-serif;
 
         &:hover {
           background-color: @lightest-gray;
         }
-        &::after {
-          display: none;
-        }
 
         i {
-          width: 20px;
+          width: 18px;
           text-align: center;
+          color: @nice-blue;
         }
+      }
+
+      &:first-child a,
+      &:first-child button {
+        border-radius: @border-radius @border-radius 0 0;
+      }
+
+      &:last-child a,
+      &:last-child button {
+        border-radius: 0 0 @border-radius @border-radius;
       }
     }
   }
