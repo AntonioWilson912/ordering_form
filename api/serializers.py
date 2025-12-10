@@ -1,117 +1,141 @@
-from dataclasses import dataclass, asdict
-from typing import List, Optional
+from rest_framework import serializers
+from product_app.models import Product
+from order_app.models import Order, ProductOrder, EmailDraft
+from company_app.models import Company
+from user_app.models import User
 
-@dataclass
-class ProductDTO:
-    """Data Transfer Object for Product"""
-    id: int
-    name: str
-    item_no: str
-    qty: int
-    item_type: str
-    company_id: int
-    company_name: str
-    active: bool
 
-    @classmethod
-    def from_model(cls, product):
-        """Create DTO from Product model instance"""
-        return cls(
-            id=product.id,
-            name=product.name,
-            item_no=product.item_no,
-            qty=product.qty,
-            item_type=product.item_type,
-            company_id=product.company.id,
-            company_name=product.company.name,
-            active=product.active
-        )
+class CompanySerializer(serializers.ModelSerializer):
+    """Serializer for Company model"""
+    product_count = serializers.SerializerMethodField()
+    active_product_count = serializers.SerializerMethodField()
 
-    def to_dict(self):
-        """Convert to dictionary for JSON serialization"""
-        return asdict(self)
+    class Meta:
+        model = Company
+        fields = ['id', 'name', 'email', 'product_count', 'active_product_count', 'created_at']
 
-@dataclass
-class OrderItemDTO:
-    """DTO for order line items"""
-    product_id: int
-    product_name: str
-    item_no: str
-    quantity: int
-    item_type: str
+    def get_product_count(self, obj):
+        return obj.company_products.count()
 
-    def to_dict(self):
-        return asdict(self)
+    def get_active_product_count(self, obj):
+        return obj.company_products.filter(active=True).count()
 
-@dataclass
-class OrderDTO:
-    """Data Transfer Object for Order"""
-    id: int
-    date: str
-    creator_id: int
-    creator_username: str
-    items: List[OrderItemDTO]
-    total_items: int
-    company_name: Optional[str] = None
 
-    @classmethod
-    def from_model(cls, order):
-        """Create DTO from Order model instance"""
-        product_orders = order.productorder_set.select_related(
-            'product__company'
-        ).all()
+class ProductSerializer(serializers.ModelSerializer):
+    """Serializer for Product model"""
+    company_name = serializers.CharField(source='company.name', read_only=True)
+    item_type_display = serializers.CharField(source='get_item_type_display_name', read_only=True)
 
-        items = [
-            OrderItemDTO(
-                product_id=po.product.id,
-                product_name=po.product.name,
-                item_no=po.product.item_no,
-                quantity=po.quantity,
-                item_type=po.product.item_type
-            )
-            for po in product_orders
+    class Meta:
+        model = Product
+        fields = [
+            'id', 'name', 'item_no', 'qty', 'item_type', 'item_type_display',
+            'company', 'company_name', 'active', 'created_at', 'updated_at'
         ]
+        read_only_fields = ['id', 'created_at', 'updated_at']
 
-        # Get company name from first item
-        company_name = None
-        if product_orders:
-            company_name = product_orders[0].product.company.name
 
-        return cls(
-            id=order.id,
-            date=order.date.strftime('%Y-%m-%d %H:%M'),
-            creator_id=order.creator.id,
-            creator_username=order.creator.username,
-            items=items,
-            total_items=sum(po.quantity for po in product_orders),
-            company_name=company_name
-        )
+class ProductCreateSerializer(serializers.Serializer):
+    """Serializer for creating products via AJAX"""
+    company_id = serializers.IntegerField()
+    name = serializers.CharField(min_length=3, max_length=255)
+    item_no = serializers.CharField(required=False, allow_blank=True, max_length=12)
+    item_type = serializers.ChoiceField(choices=['C', 'W'])
 
-    def to_dict(self):
-        data = asdict(self)
-        # Convert nested datacl dataclasses to dicts
-        data['items'] = [
-            item.to_dict() if hasattr(item, 'to_dict') else item
-            for item in self.items
-        ]
+    def validate_company_id(self, value):
+        if value == -1:
+            raise serializers.ValidationError("Must select a company.")
+        if not Company.objects.filter(id=value).exists():
+            raise serializers.ValidationError("Company not found.")
+        return value
+
+    def validate(self, data):
+        item_no = data.get('item_no', '')
+        company_id = data.get('company_id')
+
+        if item_no and company_id:
+            if Product.objects.filter(company_id=company_id, item_no=item_no).exists():
+                raise serializers.ValidationError({
+                    'item_no': "This item number already exists for the selected company."
+                })
         return data
 
-@dataclass
-class CompanyDTO:
-    """Data Transfer Object for Company"""
-    id: int
-    name: str
-    product_count: int
-    created_at: str
-
-    @classmethod
-    def from_model(cls, company):
-        return cls(
-            id=company.id,
-            name=company.name,
-            product_count=company.company_products.filter(active=True).count(),
-            created_at=company.created_at.strftime('%Y-%m-%d')
+    def create(self, validated_data):
+        company = Company.objects.get(id=validated_data['company_id'])
+        return Product.objects.create(
+            company=company,
+            name=validated_data['name'],
+            item_no=validated_data.get('item_no', ''),
+            item_type=validated_data['item_type']
         )
 
-    def to_dict(self):
-        return asdict(self)
+
+class ProductOrderSerializer(serializers.ModelSerializer):
+    """Serializer for ProductOrder (order line items)"""
+    product_name = serializers.CharField(source='product.name', read_only=True)
+    item_no = serializers.CharField(source='product.item_no', read_only=True)
+    item_type = serializers.CharField(source='product.item_type', read_only=True)
+    item_type_display = serializers.CharField(source='product.get_item_type_display_name', read_only=True)
+
+    class Meta:
+        model = ProductOrder
+        fields = ['product', 'product_name', 'item_no', 'item_type', 'item_type_display', 'quantity']
+
+
+class OrderSerializer(serializers.ModelSerializer):
+    """Serializer for Order model"""
+    creator_username = serializers.CharField(source='creator.username', read_only=True)
+    items = ProductOrderSerializer(source='productorder_set', many=True, read_only=True)
+    total_items = serializers.SerializerMethodField()
+    company_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Order
+        fields = [
+            'id', 'date', 'creator', 'creator_username', 'items',
+            'total_items', 'company_name', 'created_at', 'updated_at'
+        ]
+        read_only_fields = ['id', 'date', 'creator', 'created_at', 'updated_at']
+
+    def get_total_items(self, obj):
+        return obj.get_total_items()
+
+    def get_company_name(self, obj):
+        company = obj.get_company()
+        return company.name if company else None
+
+
+class OrderCreateSerializer(serializers.Serializer):
+    """Serializer for creating orders"""
+    items = serializers.DictField(child=serializers.IntegerField(min_value=0))
+
+    def validate_items(self, value):
+        # Filter out zero quantities
+        filtered_items = {k: v for k, v in value.items() if v > 0}
+        if not filtered_items:
+            raise serializers.ValidationError(
+                "Please select at least one product with quantity greater than 0."
+            )
+        return filtered_items
+
+
+class EmailDraftSerializer(serializers.ModelSerializer):
+    """Serializer for EmailDraft model"""
+    class Meta:
+        model = EmailDraft
+        fields = ['id', 'order', 'to_email', 'from_email', 'subject', 'content', 'updated_at']
+        read_only_fields = ['id', 'updated_at']
+
+
+class SendEmailSerializer(serializers.Serializer):
+    """Serializer for sending emails"""
+    to = serializers.EmailField()
+    from_email = serializers.EmailField(source='from', required=False)
+    subject = serializers.CharField(max_length=255)
+    content = serializers.CharField()
+    order_id = serializers.IntegerField()
+
+    def validate_order_id(self, value):
+        if not Order.objects.filter(id=value).exists():
+            raise serializers.ValidationError("Order not found.")
+        return value

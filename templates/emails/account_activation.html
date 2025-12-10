@@ -1,0 +1,28 @@
+{% extends 'emails/base_email.html' %}
+{% block title %}Activate Your Account{% endblock %}
+{% block content %}
+    <h2>Welcome to Order Form!</h2>
+    <p>Hi {{ user.username }},</p>
+    <p>
+        Thank you for registering! To complete your registration and activate your account, please click the button below:
+    </p>
+    <div class="cta-container">
+        <a href="{{ activation_url }}" class="cta-button">Activate My Account</a>
+    </div>
+    <div class="info-box">
+        <p>
+            <strong>This activation link will expire in {{ expiry_hours }} hours.</strong>
+        </p>
+        <p>After activation, you'll be able to access all features of Order Form.</p>
+    </div>
+    <p>Once activated, you can:</p>
+    <ul>
+        <li>Create and manage orders</li>
+        <li>Add and organize products</li>
+        <li>Manage company information</li>
+        <li>Send order emails directly from the platform</li>
+    </ul>
+    <p>If you did not create an account with Order Form, please ignore this email.</p>
+    <p class="small-text">If the button doesn't work, copy and paste this link into your browser:</p>
+    <p class="link-fallback">{{ activation_url }}</p>
+{% endblock %}

@@ -1,11 +1,17 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.utils import timezone
+from django.conf import settings
 import pytz
+import secrets
+import hashlib
+from datetime import timedelta
 
 TIMEZONE_CHOICES = [(tz, tz) for tz in pytz.common_timezones]
 
+
 class User(AbstractUser):
-    """Custom user model extending Django's AbstractUser"""
+    """Custom user model with activation support"""
     email = models.EmailField(unique=True)
     timezone = models.CharField(
         max_length=50,
@@ -13,8 +19,11 @@ class User(AbstractUser):
         default='America/New_York',
         help_text='User timezone for displaying dates'
     )
+    is_activated = models.BooleanField(
+        default=False,
+        help_text='Designates whether this user has activated their account via email.'
+    )
 
-    # Add any additional fields here
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -26,3 +35,189 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.username
+
+    def can_resend_activation(self):
+        """Check if enough time has passed to resend activation email"""
+        cooldown = getattr(settings, 'ACTIVATION_RESEND_COOLDOWN_SECONDS', 60)
+        latest_token = self.activation_tokens.order_by('-created_at').first()
+
+        if not latest_token:
+            return True
+
+        elapsed = (timezone.now() - latest_token.created_at).total_seconds()
+        return elapsed >= cooldown
+
+
+class PasswordResetToken(models.Model):
+    """
+    Stores password reset tokens with expiration and blacklist functionality.
+    """
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='password_reset_tokens'
+    )
+    token_hash = models.CharField(max_length=64, unique=True, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    used_at = models.DateTimeField(null=True, blank=True)
+    is_blacklisted = models.BooleanField(default=False)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.TextField(blank=True, default='')
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['token_hash', 'is_blacklisted']),
+            models.Index(fields=['user', 'created_at']),
+        ]
+
+    def __str__(self):
+        return f"Password Reset for {self.user.username} - {'Used' if self.is_blacklisted else 'Active'}"
+
+    @classmethod
+    def generate_token(cls):
+        """Generate a cryptographically secure random token"""
+        return secrets.token_urlsafe(32)
+
+    @classmethod
+    def hash_token(cls, token):
+        """Hash the token for secure storage"""
+        return hashlib.sha256(token.encode()).hexdigest()
+
+    @classmethod
+    def create_for_user(cls, user, request=None):
+        """Create a new password reset token for a user"""
+        # Invalidate any existing unused tokens
+        cls.objects.filter(user=user, is_blacklisted=False).update(is_blacklisted=True)
+
+        raw_token = cls.generate_token()
+        token_hash = cls.hash_token(raw_token)
+
+        expiry_minutes = getattr(settings, 'PASSWORD_RESET_TOKEN_EXPIRY_MINUTES', 10)
+        expires_at = timezone.now() + timedelta(minutes=expiry_minutes)
+
+        ip_address = None
+        user_agent = ''
+
+        if request:
+            ip_address = cls.get_client_ip(request)
+            user_agent = request.META.get('HTTP_USER_AGENT', '')
+
+        token_obj = cls.objects.create(
+            user=user,
+            token_hash=token_hash,
+            expires_at=expires_at,
+            ip_address=ip_address,
+            user_agent=user_agent
+        )
+
+        # Return the raw token (only time it's available)
+        return raw_token, token_obj
+
+    @classmethod
+    def get_client_ip(cls, request):
+        """Extract client IP from request"""
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        if x_forwarded_for:
+            return x_forwarded_for.split(',')[0].strip()
+        return request.META.get('REMOTE_ADDR')
+
+    @classmethod
+    def validate_token(cls, raw_token):
+        """
+        Validate a token and return the token object if valid.
+        Returns None if invalid, expired, or blacklisted.
+        """
+        token_hash = cls.hash_token(raw_token)
+
+        try:
+            token_obj = cls.objects.select_related('user').get(
+                token_hash=token_hash,
+                is_blacklisted=False
+            )
+
+            if timezone.now() > token_obj.expires_at:
+                return None
+
+            return token_obj
+        except cls.DoesNotExist:
+            return None
+
+    def blacklist(self):
+        """Blacklist this token so it can never be used again"""
+        self.is_blacklisted = True
+        self.used_at = timezone.now()
+        self.save(update_fields=['is_blacklisted', 'used_at'])
+
+
+class AccountActivationToken(models.Model):
+    """
+    Stores account activation tokens.
+    """
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='activation_tokens'
+    )
+    token_hash = models.CharField(max_length=64, unique=True, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    used_at = models.DateTimeField(null=True, blank=True)
+    is_used = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Activation for {self.user.username} - {'Used' if self.is_used else 'Pending'}"
+
+    @classmethod
+    def generate_token(cls):
+        return secrets.token_urlsafe(32)
+
+    @classmethod
+    def hash_token(cls, token):
+        return hashlib.sha256(token.encode()).hexdigest()
+
+    @classmethod
+    def create_for_user(cls, user):
+        """Create a new activation token for a user"""
+        # Don't invalidate old tokens, just create new one
+        raw_token = cls.generate_token()
+        token_hash = cls.hash_token(raw_token)
+
+        expiry_hours = getattr(settings, 'ACCOUNT_ACTIVATION_TOKEN_EXPIRY_HOURS', 24)
+        expires_at = timezone.now() + timedelta(hours=expiry_hours)
+
+        token_obj = cls.objects.create(
+            user=user,
+            token_hash=token_hash,
+            expires_at=expires_at
+        )
+
+        return raw_token, token_obj
+
+    @classmethod
+    def validate_token(cls, raw_token):
+        """Validate an activation token"""
+        token_hash = cls.hash_token(raw_token)
+
+        try:
+            token_obj = cls.objects.select_related('user').get(
+                token_hash=token_hash,
+                is_used=False
+            )
+
+            if timezone.now() > token_obj.expires_at:
+                return None
+
+            return token_obj
+        except cls.DoesNotExist:
+            return None
+
+    def mark_used(self):
+        """Mark this token as used"""
+        self.is_used = True
+        self.used_at = timezone.now()
+        self.save(update_fields=['is_used', 'used_at'])

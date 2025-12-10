@@ -9,7 +9,6 @@
         <title>
             {% block title %}{{ page_title|default:"Order Form" }}{% endblock %}
         </title>
-        {% load static %}
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap"
@@ -109,12 +108,14 @@
                         </ul>
                     </div>
                 </nav>
-                <!-- Banner for messages -->
+                <!-- Banner for Django messages -->
                 {% if messages %}
-                    <div id="banner" class="banner banner-{{ messages.tags }}">
-                        {% for message in messages %}<span id="bannerText">{{ message }}</span>{% endfor %}
-                        <i id="bannerClose" class="fa-solid fa-xmark"></i>
-                    </div>
+                    {% for message in messages %}
+                        <div id="banner" class="banner banner-{{ message.tags|default:'info' }}">
+                            <span id="bannerText">{{ message }}</span>
+                            <i id="bannerClose" class="fa-solid fa-xmark"></i>
+                        </div>
+                    {% endfor %}
                 {% else %}
                     <div id="banner" class="banner" style="display: none;">
                         <span id="bannerText"></span>

@@ -6,12 +6,12 @@ app_name = 'api'
 urlpatterns = [
     # Product endpoints
     path('products/company/<int:company_id>/', views.get_company_products, name='get_company_products'),
-    path('products/create/', views.create_product, name='create_product'),
+    path('products/create/', views.CreateProductView.as_view(), name='create_product'),
 
     # Order endpoints
-    path('orders/create/', views.create_order, name='create_order'),
-    path('orders/send-email/', views.send_order_email, name='send_order_email'),
-    path('orders/<int:order_id>/draft/', views.get_email_draft, name='get_email_draft'),
-    path('orders/save-draft/', views.save_email_draft, name='save_email_draft'),
+    path('orders/create/', views.CreateOrderView.as_view(), name='create_order'),
+    path('orders/send-email/', views.SendOrderEmailView.as_view(), name='send_order_email'),
+    path('orders/<int:order_id>/draft/', views.EmailDraftView.as_view(), name='get_email_draft'),
+    path('orders/save-draft/', views.EmailDraftView.as_view(), name='save_email_draft'),
     path('orders/<int:order_id>/export-csv/', views.export_order_csv, name='export_order_csv'),
 ]

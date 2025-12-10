@@ -7,8 +7,15 @@ urlpatterns = [
     path("", views.index, name="index"),
     path("login/", views.login, name="login"),
     path("register/", views.register, name="register"),
-    path("reset/", views.reset_password, name="reset"),
     path("logout/", views.logout, name="logout"),
+
+    # Password Reset
+    path("reset/", views.request_password_reset, name="reset"),
+    path("reset-password/confirm/<str:token>/", views.reset_password_confirm, name="reset_confirm"),
+
+    # Account Activation
+    path("activate/<str:token>/", views.activate_account, name="activate"),
+    path("resend-activation/", views.resend_activation, name="resend_activation"),
 
     path("users/", views.UserListView.as_view(), name="user_list"),
     path("help/", views.HelpView.as_view(), name="help"),

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>
+            {% block title %}Order Form{% endblock %}
+        </title>
+        <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333333;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        .email-wrapper {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+        }
+        .email-header {
+            background: linear-gradient(135deg, #5b83ad, #7ba3cd);
+            color: #ffffff;
+            padding: 30px;
+            text-align: center;
+        }
+        .email-header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        .email-body {
+            padding: 40px 30px;
+        }
+        .email-body h2 {
+            color: #5b83ad;
+            margin-top: 0;
+        }
+        .email-body p {
+            margin: 15px 0;
+            color: #555555;
+        }
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #5b83ad, #7ba3cd);
+            color: #ffffff !important;
+            text-decoration: none;
+            padding: 15px 40px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            margin: 25px 0;
+            text-align: center;
+        }
+        .cta-button:hover {
+            background: linear-gradient(135deg, #4a7299, #6993bd);
+        }
+        .cta-container {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .security-notice {
+            background-color: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 25px 0;
+        }
+        .security-notice h3 {
+            color: #856404;
+            margin: 0 0 10px 0;
+            font-size: 16px;
+        }
+        .security-notice p {
+            color: #856404;
+            margin: 5px 0;
+            font-size: 14px;
+        }
+        .info-box {
+            background-color: #e8f4fd;
+            border-left: 4px solid #5b83ad;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .email-footer {
+            background-color: #f8f9fa;
+            padding: 25px 30px;
+            text-align: center;
+            border-top: 1px solid #eeeeee;
+        }
+        .email-footer p {
+            margin: 5px 0;
+            color: #888888;
+            font-size: 13px;
+        }
+        .small-text {
+            font-size: 12px;
+            color: #999999;
+        }
+        .link-fallback {
+            word-break: break-all;
+            font-size: 12px;
+            color: #5b83ad;
+        }
+        </style>
+    </head>
+    <body>
+        <div class="email-wrapper">
+            <div class="email-header">
+                <h1>Order Form</h1>
+            </div>
+            <div class="email-body">
+                {% block content %}{% endblock %}
+            </div>
+            <div class="email-footer">
+                <p>This email was sent by Order Form</p>
+                <p>If you have questions, contact us at {{ support_email }}</p>
+                <p class="small-text">© {% now "Y" %} Order Form. All rights reserved.</p>
+            </div>
+        </div>
+    </body>
+</html>
