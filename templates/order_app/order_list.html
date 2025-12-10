@@ -77,20 +77,20 @@
                     </div>
                     <!-- Store order data for email -->
                     <script type="application/json" class="order-data" data-order-id="{{ item.order.id }}">
-            {
-                "order_id": {{ item.order.id }},
-                "company_name": "{{ item.company.name }}",
-                "items": [
-                    {% for po in item.items %}
-                    {
-                        "product_name": "{{ po.product.name }}",
-                        "item_no": "{{ po.product.item_no|default:'' }}",
-                        "item_type": "{{ po.product.item_type }}",
-                        "quantity": {{ po.quantity }}
-                    }{% if not forloop.last %},{% endif %}
-                    {% endfor %}
-                ]
-            }
+        {
+            "order_id": {{ item.order.id }},
+            "company_name": "{{ item.company.name }}",
+            "items": [
+                {% for po in item.items %}
+                {
+                    "product_name": "{{ po.product.name }}",
+                    "item_no": "{{ po.product.item_no|default:'' }}",
+                    "item_type": "{{ po.product.item_type }}",
+                    "quantity": {{ po.quantity }}
+                }{% if not forloop.last %},{% endif %}
+                {% endfor %}
+            ]
+        }
                     </script>
                 </div>
             {% endfor %}
@@ -137,17 +137,14 @@ $(document).ready(function() {
         $('.order-actions-menu').removeClass('show');
     });
 
-    // Email order
+    // Email order - no longer passing user email, server handles it
     $('.email-order').click(function() {
         const orderId = $(this).data('order-id');
         const companyEmail = $(this).data('company-email');
         const orderDataElement = $(`.order-data[data-order-id="${orderId}"]`);
         const orderData = JSON.parse(orderDataElement.text());
 
-        // Get user email
-        const userEmail = "{{ request.user.email|default:'' }}";
-
-        emailComposer.open(orderData, companyEmail, userEmail);
+        emailComposer.open(orderData, companyEmail);
     });
 
     // Export as CSV

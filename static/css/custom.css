@@ -857,6 +857,22 @@ body {
   padding-top: 15px;
   border-top: 1px solid #d6d6d6;
 }
+.sender-info .sender-display {
+  background: #f5f5f5;
+  padding: 10px 15px;
+  border-radius: 4px;
+  border: 1px solid #d6d6d6;
+}
+.sender-info .sender-display span {
+  font-weight: 600;
+  color: #333333;
+}
+.sender-info .sender-display .form-text {
+  display: block;
+  margin-top: 5px;
+  font-size: 0.8rem;
+  color: #666666;
+}
 .email-notification {
   position: absolute;
   top: 60px;

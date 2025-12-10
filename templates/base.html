@@ -89,10 +89,7 @@
                         <ul id="user-dropdown" class="list-unstyled components">
                             {% if request.user.is_authenticated %}
                                 <li>
-                                    <a href="#">Profile</a>
-                                </li>
-                                <li>
-                                    <a href="#">Account</a>
+                                    <a href="{% url 'users:account_settings' %}">Account Settings</a>
                                 </li>
                                 <li>
                                     <a href="{% url 'users:logout' %}">Log Out</a>

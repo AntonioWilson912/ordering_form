@@ -1,10 +1,9 @@
-from rest_framework import status, generics, views
+from rest_framework import status, generics
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.db import transaction
-from django.core.mail import send_mail
 from django.conf import settings
 from django.http import HttpResponse
 import csv
@@ -13,10 +12,11 @@ from company_app.models import Company
 from product_app.models import Product
 from order_app.models import Order, ProductOrder, EmailDraft
 from user_app.models import User
+from user_app.services import EmailService
 from core.api_mixins import AjaxRequiredMixin, StandardResponseMixin
 from .serializers import (
     ProductSerializer, ProductCreateSerializer, OrderSerializer,
-    OrderCreateSerializer, EmailDraftSerializer, SendEmailSerializer
+    OrderCreateSerializer, EmailDraftSerializer
 )
 
 
@@ -29,9 +29,7 @@ from .serializers import (
 def get_company_products(request, company_id):
     """
     AJAX endpoint to fetch products for a company.
-    Demonstrates function-based view with DRF decorators.
     """
-    # Check AJAX
     if not request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         return Response({'error': 'AJAX request required'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -70,10 +68,7 @@ def get_company_products(request, company_id):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def export_order_csv(request, order_id):
-    """
-    Export order as CSV.
-    Function-based view for file downloads.
-    """
+    """Export order as CSV."""
     try:
         order = Order.objects.get(id=order_id)
         product_orders = order.productorder_set.select_related('product').all()
@@ -108,15 +103,11 @@ def export_order_csv(request, order_id):
 # ============================================================================
 
 class CreateOrderView(AjaxRequiredMixin, StandardResponseMixin, APIView):
-    """
-    Class-based view for creating orders.
-    Demonstrates CBV with custom mixins.
-    """
+    """Class-based view for creating orders."""
     permission_classes = [IsAuthenticated]
 
     @transaction.atomic
     def post(self, request):
-        # Parse order items from form data
         order_items = {}
         for key, value in request.data.items():
             if key.startswith('product_'):
@@ -136,10 +127,8 @@ class CreateOrderView(AjaxRequiredMixin, StandardResponseMixin, APIView):
             )
 
         try:
-            # Create order
             order = Order.objects.create(creator=request.user)
 
-            # Create order items
             for product_id, quantity in serializer.validated_data['items'].items():
                 product = Product.objects.select_related('company').get(id=product_id)
                 ProductOrder.objects.create(
@@ -163,10 +152,7 @@ class CreateOrderView(AjaxRequiredMixin, StandardResponseMixin, APIView):
 
 
 class CreateProductView(AjaxRequiredMixin, StandardResponseMixin, generics.CreateAPIView):
-    """
-    Generic view for creating products.
-    Demonstrates DRF generics with custom mixins.
-    """
+    """Generic view for creating products."""
     serializer_class = ProductCreateSerializer
     permission_classes = [IsAuthenticated]
 
@@ -174,7 +160,6 @@ class CreateProductView(AjaxRequiredMixin, StandardResponseMixin, generics.Creat
         serializer = self.get_serializer(data=request.data)
 
         if not serializer.is_valid():
-            # Format errors for frontend compatibility
             errors = {}
             for field, messages in serializer.errors.items():
                 error_key = f'{field}_error'
@@ -196,31 +181,28 @@ class CreateProductView(AjaxRequiredMixin, StandardResponseMixin, generics.Creat
 
 
 class SendOrderEmailView(AjaxRequiredMixin, StandardResponseMixin, APIView):
-    """
-    View for sending order emails.
-    """
+    """View for sending order emails using server email with user's name."""
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        serializer = SendEmailSerializer(data=request.data)
+        to_email = request.data.get('to')
+        subject = request.data.get('subject')
+        content = request.data.get('content')
+        order_id = request.data.get('order_id')
 
-        if not serializer.is_valid():
-            return self.error_response(
-                message='Missing required fields',
-                errors=serializer.errors
-            )
-
-        data = serializer.validated_data
+        # Validate required fields
+        if not all([to_email, subject, content, order_id]):
+            return self.error_response(message='Missing required fields')
 
         try:
-            order = Order.objects.get(id=data['order_id'])
+            order = Order.objects.get(id=order_id)
 
-            send_mail(
-                subject=data['subject'],
-                message=data['content'],
-                from_email=data.get('from_email', settings.DEFAULT_FROM_EMAIL),
-                recipient_list=[data['to']],
-                fail_silently=False,
+            # Send email using the EmailService
+            EmailService.send_order_email(
+                user=request.user,
+                to_email=to_email,
+                subject=subject,
+                content=content
             )
 
             # Delete draft after successful send
@@ -241,9 +223,7 @@ class SendOrderEmailView(AjaxRequiredMixin, StandardResponseMixin, APIView):
 
 
 class EmailDraftView(AjaxRequiredMixin, StandardResponseMixin, APIView):
-    """
-    View for managing email drafts (get and save).
-    """
+    """View for managing email drafts (get and save)."""
     permission_classes = [IsAuthenticated]
 
     def get(self, request, order_id):
@@ -256,7 +236,6 @@ class EmailDraftView(AjaxRequiredMixin, StandardResponseMixin, APIView):
                 return self.success_response(data={
                     'draft': {
                         'to': draft.to_email,
-                        'from': draft.from_email,
                         'subject': draft.subject,
                         'content': draft.content,
                         'updated_at': draft.updated_at.strftime('%Y-%m-%d %H:%M:%S')
@@ -275,7 +254,7 @@ class EmailDraftView(AjaxRequiredMixin, StandardResponseMixin, APIView):
         """Save email draft"""
         order_id = request.data.get('order_id')
 
-        required_fields = ['order_id', 'to', 'from', 'subject', 'content']
+        required_fields = ['order_id', 'to', 'subject', 'content']
         missing = [f for f in required_fields if not request.data.get(f)]
 
         if missing:
@@ -291,7 +270,7 @@ class EmailDraftView(AjaxRequiredMixin, StandardResponseMixin, APIView):
                 user=request.user,
                 defaults={
                     'to_email': request.data.get('to'),
-                    'from_email': request.data.get('from'),
+                    'from_email': settings.DEFAULT_FROM_EMAIL,  # Always use server email
                     'subject': request.data.get('subject'),
                     'content': request.data.get('content')
                 }
@@ -310,3 +289,17 @@ class EmailDraftView(AjaxRequiredMixin, StandardResponseMixin, APIView):
                 message='Order not found',
                 status_code=status.HTTP_404_NOT_FOUND
             )
+
+
+class UserEmailInfoView(AjaxRequiredMixin, StandardResponseMixin, APIView):
+    """Get user's email info for the composer."""
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        """Return user's display name and email info for composer"""
+        user = request.user
+        return self.success_response(data={
+            'display_name': user.get_display_name(),
+            'sender_name': user.get_email_sender_name(),
+            'reply_to_email': user.email,
+        })

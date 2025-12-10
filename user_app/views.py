@@ -1,11 +1,11 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
 from django.contrib import messages
-from django.views.generic import ListView, TemplateView, View
-from django.http import JsonResponse
-from django.utils import timezone
+from django.views.generic import ListView, TemplateView, UpdateView
 from django.conf import settings
+from django.urls import reverse_lazy
 from core.mixins import PageTitleMixin, LoginRequiredMixin
+from .forms import AccountSettingsForm, ChangePasswordForm
 from .models import User, PasswordResetToken, AccountActivationToken
 from .services import EmailService
 
@@ -281,3 +281,59 @@ class UserListView(LoginRequiredMixin, PageTitleMixin, ListView):
 class HelpView(LoginRequiredMixin, PageTitleMixin, TemplateView):
     template_name = 'user_app/help.html'
     page_title = 'Help'
+
+
+class AccountSettingsView(LoginRequiredMixin, PageTitleMixin, UpdateView):
+    """View for updating account settings"""
+    model = User
+    form_class = AccountSettingsForm
+    template_name = 'user_app/account_settings.html'
+    page_title = 'Account Settings'
+
+    def get_object(self, queryset=None):
+        return self.request.user
+
+    def get_success_url(self):
+        return reverse_lazy('users:account_settings')
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Account settings updated successfully!')
+        return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['password_form'] = ChangePasswordForm(user=self.request.user)
+        context['email_preview'] = self.request.user.get_email_sender_name()
+        return context
+
+
+def change_password(request):
+    """Handle password change from account settings"""
+    if not request.user.is_authenticated:
+        return redirect('users:login')
+
+    if request.method == "POST":
+        form = ChangePasswordForm(user=request.user, data=request.POST)
+
+        if form.is_valid():
+            request.user.set_password(form.cleaned_data['new_password'])
+            request.user.save()
+
+            # Re-authenticate to prevent logout
+            from django.contrib.auth import update_session_auth_hash
+            update_session_auth_hash(request, request.user)
+
+            # Send notification email
+            EmailService.send_password_changed_notification(request.user)
+
+            messages.success(request, 'Password changed successfully!')
+            return redirect('users:account_settings')
+        else:
+            # Pass errors back to the template
+            for error in form.non_field_errors():
+                messages.error(request, error)
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f'{field}: {error}')
+
+    return redirect('users:account_settings')

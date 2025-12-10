@@ -11,8 +11,18 @@ TIMEZONE_CHOICES = [(tz, tz) for tz in pytz.common_timezones]
 
 
 class User(AbstractUser):
-    """Custom user model with activation support"""
+    """Custom user model with activation support and profile info"""
     email = models.EmailField(unique=True)
+
+    # Profile fields
+    first_name = models.CharField(max_length=150, blank=True)
+    last_name = models.CharField(max_length=150, blank=True)
+    display_name = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text='Name to display when sending emails. Falls back to username if empty.'
+    )
+
     timezone = models.CharField(
         max_length=50,
         choices=TIMEZONE_CHOICES,
@@ -36,6 +46,22 @@ class User(AbstractUser):
     def __str__(self):
         return self.username
 
+    def get_display_name(self):
+        """Get the name to display for this user"""
+        if self.display_name:
+            return self.display_name
+        if self.first_name and self.last_name:
+            return f"{self.first_name} {self.last_name}"
+        if self.first_name:
+            return self.first_name
+        return self.username
+
+    def get_email_sender_name(self):
+        """Get the name to use as email sender"""
+        display = self.get_display_name()
+        app_name = getattr(settings, 'EMAIL_SENDER_NAME', 'Order Form')
+        return f"{display} via {app_name}"
+
     def can_resend_activation(self):
         """Check if enough time has passed to resend activation email"""
         cooldown = getattr(settings, 'ACTIVATION_RESEND_COOLDOWN_SECONDS', 60)
@@ -46,6 +72,18 @@ class User(AbstractUser):
 
         elapsed = (timezone.now() - latest_token.created_at).total_seconds()
         return elapsed >= cooldown
+
+    def get_resend_cooldown_remaining(self):
+        """Get remaining seconds until user can resend activation"""
+        cooldown = getattr(settings, 'ACTIVATION_RESEND_COOLDOWN_SECONDS', 60)
+        latest_token = self.activation_tokens.order_by('-created_at').first()
+
+        if not latest_token:
+            return 0
+
+        elapsed = (timezone.now() - latest_token.created_at).total_seconds()
+        remaining = cooldown - elapsed
+        return max(0, int(remaining))
 
 
 class PasswordResetToken(models.Model):
@@ -112,7 +150,6 @@ class PasswordResetToken(models.Model):
             user_agent=user_agent
         )
 
-        # Return the raw token (only time it's available)
         return raw_token, token_obj
 
     @classmethod
@@ -183,12 +220,12 @@ class AccountActivationToken(models.Model):
     @classmethod
     def create_for_user(cls, user):
         """Create a new activation token for a user"""
-        # Don't invalidate old tokens, just create new one
         raw_token = cls.generate_token()
         token_hash = cls.hash_token(raw_token)
 
-        expiry_hours = getattr(settings, 'ACCOUNT_ACTIVATION_TOKEN_EXPIRY_HOURS', 24)
-        expires_at = timezone.now() + timedelta(hours=expiry_hours)
+        # Use minutes like password reset
+        expiry_minutes = getattr(settings, 'ACCOUNT_ACTIVATION_TOKEN_EXPIRY_MINUTES', 10)
+        expires_at = timezone.now() + timedelta(minutes=expiry_minutes)
 
         token_obj = cls.objects.create(
             user=user,

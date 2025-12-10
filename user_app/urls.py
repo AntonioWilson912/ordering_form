@@ -17,6 +17,10 @@ urlpatterns = [
     path("activate/<str:token>/", views.activate_account, name="activate"),
     path("resend-activation/", views.resend_activation, name="resend_activation"),
 
+    # Account Settings
+    path("account/", views.AccountSettingsView.as_view(), name="account_settings"),
+    path("account/change-password/", views.change_password, name="change_password"),
+
     path("users/", views.UserListView.as_view(), name="user_list"),
     path("help/", views.HelpView.as_view(), name="help"),
 ]

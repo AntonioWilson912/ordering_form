@@ -14,4 +14,7 @@ urlpatterns = [
     path('orders/<int:order_id>/draft/', views.EmailDraftView.as_view(), name='get_email_draft'),
     path('orders/save-draft/', views.EmailDraftView.as_view(), name='save_email_draft'),
     path('orders/<int:order_id>/export-csv/', views.export_order_csv, name='export_order_csv'),
+
+    # User info endpoint
+    path('user/email-info/', views.UserEmailInfoView.as_view(), name='user_email_info'),
 ]

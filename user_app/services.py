@@ -1,8 +1,9 @@
-from django.core.mail import send_mail, EmailMultiAlternatives
+from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from django.conf import settings
 from django.utils import timezone
+from .models import PasswordResetToken
 
 
 class EmailService:
@@ -13,9 +14,7 @@ class EmailService:
         """Send password reset email with security notices"""
         reset_url = f"{settings.FRONTEND_URL}/reset-password/confirm/{raw_token}/"
 
-        # Get request info for security notice
         ip_address = 'Unknown'
-        location = 'Unknown location'
 
         if request:
             ip_address = PasswordResetToken.get_client_ip(request)
@@ -46,10 +45,13 @@ class EmailService:
         """Send account activation email with CTA button"""
         activation_url = f"{settings.FRONTEND_URL}/activate/{raw_token}/"
 
+        # Use minutes now instead of hours
+        expiry_minutes = getattr(settings, 'ACCOUNT_ACTIVATION_TOKEN_EXPIRY_MINUTES', 10)
+
         context = {
             'user': user,
             'activation_url': activation_url,
-            'expiry_hours': settings.ACCOUNT_ACTIVATION_TOKEN_EXPIRY_HOURS,
+            'expiry_minutes': expiry_minutes,
             'support_email': settings.DEFAULT_FROM_EMAIL,
         }
 
@@ -86,6 +88,31 @@ class EmailService:
         email.attach_alternative(html_content, "text/html")
         email.send(fail_silently=False)
 
+    @staticmethod
+    def send_order_email(user, to_email, subject, content):
+        """
+        Send order email with user's name as sender and their email as Reply-To.
 
-# Import for convenience
-from .models import PasswordResetToken
+        Args:
+            user: The User object sending the email
+            to_email: Recipient email address
+            subject: Email subject
+            content: Email body content
+        """
+        # Build the "From" address with user's display name
+        sender_name = user.get_email_sender_name()
+        from_email = f'"{sender_name}" <{settings.DEFAULT_FROM_EMAIL}>'
+
+        # User's email will be the Reply-To
+        reply_to = [user.email]
+
+        email = EmailMultiAlternatives(
+            subject=subject,
+            body=content,
+            from_email=from_email,
+            to=[to_email],
+            reply_to=reply_to
+        )
+        email.send(fail_silently=False)
+
+        return True

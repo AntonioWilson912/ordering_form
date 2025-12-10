@@ -3,11 +3,13 @@ class EmailComposer {
     this.isMinimized = false;
     this.orderData = null;
     this.hasDraft = false;
+    this.hasUnsavedChanges = false;
+    this.emailSent = false;
     this.init();
   }
 
   init() {
-    // Create composer HTML
+    // Create composer HTML - Note: No "From" field anymore
     const composerHtml = `
             <div id="emailComposer" class="email-composer">
                 <div class="email-header">
@@ -34,12 +36,15 @@ class EmailComposer {
                         <div class="form-group">
                             <label for="emailTo">To:</label>
                             <input type="email" id="emailTo" name="to" class="form-control" required>
-                            <small class="form-text">Enter recipient email address</small>
+                            <small class="form-text">Recipient email address</small>
                         </div>
 
-                        <div class="form-group">
-                            <label for="emailFrom">From:</label>
-                            <input type="email" id="emailFrom" name="from" class="form-control" readonly>
+                        <div class="form-group sender-info">
+                            <label>From:</label>
+                            <div class="sender-display">
+                                <span id="senderName">Loading...</span>
+                                <small class="form-text">Replies will be sent to your email address</small>
+                            </div>
                         </div>
 
                         <div class="form-group">
@@ -73,7 +78,7 @@ class EmailComposer {
   bindEvents() {
     const self = this;
 
-    // Minimize/Maximize - only on title, not buttons
+    // Minimize/Maximize - only on title
     $("#emailHeaderTitle").click(function () {
       self.toggleMinimize();
     });
@@ -103,10 +108,45 @@ class EmailComposer {
       e.preventDefault();
       self.sendEmail();
     });
+
+    // Track changes for unsaved warning
+    $("#emailTo, #emailSubject, #emailContent").on("input change", function () {
+      self.hasUnsavedChanges = true;
+      // Hide draft indicator when content changes after saving
+      if (self.hasDraft) {
+        $("#draftIndicator").hide();
+        self.hasDraft = false;
+      }
+    });
   }
 
-  async open(orderData, companyEmail, userEmail) {
+  async loadUserInfo() {
+    try {
+      const response = await $.ajax({
+        url: "/api/user/email-info/",
+        type: "GET",
+        headers: {
+          "X-Requested-With": "XMLHttpRequest",
+        },
+      });
+
+      if (response.success) {
+        $("#senderName").text(response.sender_name);
+        this.userInfo = response;
+      }
+    } catch (error) {
+      console.error("Failed to load user info:", error);
+      $("#senderName").text("Order Form");
+    }
+  }
+
+  async open(orderData, companyEmail) {
     this.orderData = orderData;
+    this.hasUnsavedChanges = false;
+    this.emailSent = false;
+
+    // Load user info for sender display
+    await this.loadUserInfo();
 
     // Set order ID
     $("#orderId").val(orderData.order_id);
@@ -117,13 +157,13 @@ class EmailComposer {
     if (!hasDraft) {
       // No draft found, use template
       $("#emailTo").val(companyEmail || "");
-      $("#emailFrom").val(userEmail || "");
       $("#emailSubject").val("Order Request");
 
       const content = this.generateEmailContent(orderData);
       $("#emailContent").val(content);
 
       this.hasDraft = false;
+      this.hasUnsavedChanges = false;
       $("#draftIndicator").hide();
     }
 
@@ -144,11 +184,11 @@ class EmailComposer {
       if (response.success && response.draft) {
         // Load draft data
         $("#emailTo").val(response.draft.to);
-        $("#emailFrom").val(response.draft.from);
         $("#emailSubject").val(response.draft.subject);
         $("#emailContent").val(response.draft.content);
 
         this.hasDraft = true;
+        this.hasUnsavedChanges = false;
         $("#draftIndicator").show();
 
         this.showNotification("Draft loaded", "success");
@@ -188,7 +228,6 @@ class EmailComposer {
     this.isMinimized = !this.isMinimized;
     $("#emailComposer").toggleClass("minimized");
 
-    // Update minimize icon
     if (this.isMinimized) {
       $("#minimizeEmail i")
         .removeClass("fa-window-minimize")
@@ -201,7 +240,11 @@ class EmailComposer {
   }
 
   close() {
-    if (!this.hasDraft) {
+    // Only show warning if:
+    // 1. There are unsaved changes
+    // 2. Email was NOT sent (sending clears the flag)
+    // 3. No draft has been saved
+    if (this.hasUnsavedChanges && !this.emailSent && !this.hasDraft) {
       const hasContent =
         $("#emailContent").val().trim() !== "" ||
         $("#emailTo").val().trim() !== "";
@@ -221,6 +264,8 @@ class EmailComposer {
   resetForm() {
     $("#emailForm")[0].reset();
     this.hasDraft = false;
+    this.hasUnsavedChanges = false;
+    this.emailSent = false;
     this.orderData = null;
     this.isMinimized = false;
     $("#draftIndicator").hide();
@@ -233,7 +278,6 @@ class EmailComposer {
     const formData = {
       order_id: $("#orderId").val(),
       to: $("#emailTo").val(),
-      from: $("#emailFrom").val(),
       subject: $("#emailSubject").val(),
       content: $("#emailContent").val(),
     };
@@ -251,6 +295,7 @@ class EmailComposer {
       success: (response) => {
         if (response.success) {
           this.hasDraft = true;
+          this.hasUnsavedChanges = false;
           $("#draftIndicator").show();
           this.showNotification("Draft saved successfully!", "success");
         } else {
@@ -271,7 +316,6 @@ class EmailComposer {
     const formData = {
       order_id: $("#orderId").val(),
       to: $("#emailTo").val(),
-      from: $("#emailFrom").val(),
       subject: $("#emailSubject").val(),
       content: $("#emailContent").val(),
     };
@@ -288,6 +332,10 @@ class EmailComposer {
       },
       success: (response) => {
         if (response.success) {
+          // Mark email as sent - this prevents the "unsaved changes" warning
+          this.emailSent = true;
+          this.hasUnsavedChanges = false;
+
           this.showNotification("Email sent successfully!", "success");
           setTimeout(() => {
             this.close();
@@ -311,7 +359,6 @@ class EmailComposer {
     // Remove existing notifications
     $(".email-notification").remove();
 
-    // Create notification
     const notification = $(`
             <div class="email-notification ${type}">
                 ${message}
