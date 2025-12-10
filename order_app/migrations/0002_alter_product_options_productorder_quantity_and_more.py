@@ -7,56 +7,73 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('order_app', '0001_initial'),
+        ("order_app", "0001_initial"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='product',
-            options={'ordering': ['company', 'item_no']},
+            name="product",
+            options={"ordering": ["company", "item_no"]},
         ),
         migrations.AddField(
-            model_name='productorder',
-            name='quantity',
+            model_name="productorder",
+            name="quantity",
             field=models.PositiveIntegerField(default=1),
         ),
         migrations.AlterField(
-            model_name='order',
-            name='id',
-            field=models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID'),
+            model_name="order",
+            name="id",
+            field=models.BigAutoField(
+                auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+            ),
         ),
         migrations.AlterField(
-            model_name='product',
-            name='active',
+            model_name="product",
+            name="active",
             field=models.BooleanField(default=True),
         ),
         migrations.AlterField(
-            model_name='product',
-            name='id',
-            field=models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID'),
+            model_name="product",
+            name="id",
+            field=models.BigAutoField(
+                auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+            ),
         ),
         migrations.AlterField(
-            model_name='product',
-            name='item_type',
-            field=models.CharField(choices=[('0', 'Select an item type...'), ('C', 'Case'), ('W', 'Weight')], max_length=1),
+            model_name="product",
+            name="item_type",
+            field=models.CharField(
+                choices=[
+                    ("0", "Select an item type..."),
+                    ("C", "Case"),
+                    ("W", "Weight"),
+                ],
+                max_length=1,
+            ),
         ),
         migrations.AlterField(
-            model_name='productorder',
-            name='id',
-            field=models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID'),
+            model_name="productorder",
+            name="id",
+            field=models.BigAutoField(
+                auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+            ),
         ),
         migrations.AlterField(
-            model_name='productorder',
-            name='order',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='order_app.order'),
+            model_name="productorder",
+            name="order",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE, to="order_app.order"
+            ),
         ),
         migrations.AlterField(
-            model_name='productorder',
-            name='product',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='order_app.product'),
+            model_name="productorder",
+            name="product",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE, to="order_app.product"
+            ),
         ),
         migrations.AlterUniqueTogether(
-            name='productorder',
-            unique_together={('product', 'order')},
+            name="productorder",
+            unique_together={("product", "order")},
         ),
     ]

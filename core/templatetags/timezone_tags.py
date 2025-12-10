@@ -16,9 +16,9 @@ def user_timezone(value, user):
         return value
 
     # Get user's timezone
-    user_tz_name = 'America/New_York'  # Default
+    user_tz_name = "America/New_York"  # Default
 
-    if user and hasattr(user, 'timezone') and user.timezone:
+    if user and hasattr(user, "timezone") and user.timezone:
         user_tz_name = user.timezone
 
     try:
@@ -34,31 +34,32 @@ def user_timezone(value, user):
 
 
 @register.filter
-def format_datetime(value, format_string='M d, Y H:i'):
+def format_datetime(value, format_string="M d, Y H:i"):
     """
     Format datetime with a specified format.
 
     Usage: {{ datetime_value|format_datetime:"F d, Y g:i A" }}
     """
     if not value:
-        return ''
+        return ""
 
     try:
         from django.utils.dateformat import format
+
         return format(value, format_string)
     except Exception:
         return str(value)
 
 
 @register.simple_tag
-def user_datetime(value, user, format_string='M d, Y H:i'):
+def user_datetime(value, user, format_string="M d, Y H:i"):
     """
     Convert to user timezone and format in one step.
 
     Usage: {% user_datetime order.date request.user "F d, Y g:i A" %}
     """
     if not value:
-        return ''
+        return ""
 
     # Apply timezone conversion
     converted = user_timezone(value, user)

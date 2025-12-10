@@ -7,22 +7,18 @@ from user_app.models import User
 class OrderManager(models.Manager):
     def with_details(self):
         """Optimize query with related data"""
-        return self.select_related('creator').prefetch_related(
-            'productorder_set__product__company'
+        return self.select_related("creator").prefetch_related(
+            "productorder_set__product__company"
         )
 
 
 class Order(models.Model):
     date = models.DateTimeField(default=now)
     creator = models.ForeignKey(
-        User,
-        related_name="user_orders",
-        on_delete=models.CASCADE
+        User, related_name="user_orders", on_delete=models.CASCADE
     )
     product_orders = models.ManyToManyField(
-        Product,
-        related_name="product_orders",
-        through="ProductOrder"
+        Product, related_name="product_orders", through="ProductOrder"
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -30,10 +26,10 @@ class Order(models.Model):
     objects = OrderManager()
 
     class Meta:
-        ordering = ['-date']
+        ordering = ["-date"]
         indexes = [
-            models.Index(fields=['-date']),
-            models.Index(fields=['creator']),
+            models.Index(fields=["-date"]),
+            models.Index(fields=["creator"]),
         ]
 
     def __str__(self):
@@ -41,9 +37,9 @@ class Order(models.Model):
 
     def get_total_items(self):
         """Get total number of items in order"""
-        return self.productorder_set.aggregate(
-            total=models.Sum('quantity')
-        )['total'] or 0
+        return (
+            self.productorder_set.aggregate(total=models.Sum("quantity"))["total"] or 0
+        )
 
     def get_item_count(self):
         """Get number of different products in order"""
@@ -51,17 +47,12 @@ class Order(models.Model):
 
     def get_company(self):
         """Get the company for this order (assumes all items from same company)"""
-        first_item = self.productorder_set.select_related(
-            'product__company'
-        ).first()
+        first_item = self.productorder_set.select_related("product__company").first()
         return first_item.product.company if first_item else None
 
     def get_products_dict(self):
         """Get dict of product_id: quantity for this order"""
-        return {
-            po.product_id: po.quantity
-            for po in self.productorder_set.all()
-        }
+        return {po.product_id: po.quantity for po in self.productorder_set.all()}
 
     def update_items(self, items_dict):
         """
@@ -80,13 +71,11 @@ class Order(models.Model):
                     po = current_items[product_id]
                     if po.quantity != quantity:
                         po.quantity = quantity
-                        po.save(update_fields=['quantity', 'updated_at'])
+                        po.save(update_fields=["quantity", "updated_at"])
                 else:
                     # Add new
                     ProductOrder.objects.create(
-                        order=self,
-                        product_id=product_id,
-                        quantity=quantity
+                        order=self, product_id=product_id, quantity=quantity
                     )
             else:
                 # Remove if exists
@@ -94,7 +83,7 @@ class Order(models.Model):
                     current_items[product_id].delete()
 
         # Update the order's updated_at timestamp
-        self.save(update_fields=['updated_at'])
+        self.save(update_fields=["updated_at"])
 
 
 class ProductOrder(models.Model):
@@ -105,9 +94,9 @@ class ProductOrder(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        unique_together = ['product', 'order']
+        unique_together = ["product", "order"]
         indexes = [
-            models.Index(fields=['order', 'product']),
+            models.Index(fields=["order", "product"]),
         ]
 
     def __str__(self):
@@ -116,8 +105,13 @@ class ProductOrder(models.Model):
 
 class EmailDraft(models.Model):
     """Store email drafts for orders"""
-    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='email_drafts')
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='email_drafts')
+
+    order = models.ForeignKey(
+        Order, on_delete=models.CASCADE, related_name="email_drafts"
+    )
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="email_drafts"
+    )
 
     to_email = models.EmailField()
     from_email = models.EmailField()
@@ -128,7 +122,7 @@ class EmailDraft(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ['-updated_at']
+        ordering = ["-updated_at"]
 
     def __str__(self):
         return f"Draft for Order #{self.order.id} - {self.updated_at.strftime('%Y-%m-%d %H:%M')}"

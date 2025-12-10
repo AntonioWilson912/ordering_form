@@ -9,11 +9,10 @@ class CompanyManager(models.Manager):
     def with_product_counts(self):
         """Return companies with product counts annotated"""
         return self.annotate(
-            product_count=models.Count('company_products'),
+            product_count=models.Count("company_products"),
             active_product_count=models.Count(
-                'company_products',
-                filter=models.Q(company_products__active=True)
-            )
+                "company_products", filter=models.Q(company_products__active=True)
+            ),
         )
 
 
@@ -21,8 +20,7 @@ class Company(models.Model):
     name = models.CharField(max_length=255)
     email = models.EmailField(max_length=255, blank=True, null=True)
     is_active = models.BooleanField(
-        default=True,
-        help_text='Inactive companies will not appear in order creation.'
+        default=True, help_text="Inactive companies will not appear in order creation."
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -30,8 +28,8 @@ class Company(models.Model):
     objects = CompanyManager()
 
     class Meta:
-        ordering = ['name']
-        verbose_name_plural = 'Companies'
+        ordering = ["name"]
+        verbose_name_plural = "Companies"
 
     def __str__(self):
         return self.name

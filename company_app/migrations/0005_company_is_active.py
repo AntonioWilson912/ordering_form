@@ -6,13 +6,16 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('company_app', '0004_alter_company_email'),
+        ("company_app", "0004_alter_company_email"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='company',
-            name='is_active',
-            field=models.BooleanField(default=True, help_text='Inactive companies will not appear in order creation.'),
+            model_name="company",
+            name="is_active",
+            field=models.BooleanField(
+                default=True,
+                help_text="Inactive companies will not appear in order creation.",
+            ),
         ),
     ]

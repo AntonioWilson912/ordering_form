@@ -6,17 +6,17 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('company_app', '0002_alter_company_id'),
+        ("company_app", "0002_alter_company_id"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='company',
-            options={'ordering': ['name'], 'verbose_name_plural': 'Companies'},
+            name="company",
+            options={"ordering": ["name"], "verbose_name_plural": "Companies"},
         ),
         migrations.AddField(
-            model_name='company',
-            name='email',
-            field=models.EmailField(blank=True, default='', max_length=255),
+            model_name="company",
+            name="email",
+            field=models.EmailField(blank=True, default="", max_length=255),
         ),
     ]

@@ -6,20 +6,20 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('order_app', '0003_alter_order_options_order_created_at_and_more'),
+        ("order_app", "0003_alter_order_options_order_created_at_and_more"),
     ]
 
     operations = [
         migrations.AlterUniqueTogether(
-            name='product',
+            name="product",
             unique_together=None,
         ),
         migrations.RemoveIndex(
-            model_name='product',
-            name='order_app_p_company_bde851_idx',
+            model_name="product",
+            name="order_app_p_company_bde851_idx",
         ),
         migrations.RemoveIndex(
-            model_name='product',
-            name='order_app_p_item_no_7f80b3_idx',
+            model_name="product",
+            name="order_app_p_item_no_7f80b3_idx",
         ),
     ]

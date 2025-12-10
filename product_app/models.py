@@ -2,6 +2,7 @@ from django.db import models
 from company_app.models import Company
 from core.constants import ITEM_TYPES, get_item_type_display
 
+
 class ProductManager(models.Manager):
     def validate_new_product(self, product_data):
         errors = {}
@@ -38,11 +39,10 @@ class ProductManager(models.Manager):
     def by_company(self, company):
         return self.filter(company=company)
 
+
 class Product(models.Model):
     company = models.ForeignKey(
-        Company,
-        related_name="company_products",
-        on_delete=models.CASCADE
+        Company, related_name="company_products", on_delete=models.CASCADE
     )
     name = models.CharField(max_length=255)
     item_no = models.CharField(max_length=12, default="", blank=True)
@@ -55,11 +55,11 @@ class Product(models.Model):
     objects = ProductManager()
 
     class Meta:
-        ordering = ['company', 'item_no']
-        unique_together = ['company', 'item_no']
+        ordering = ["company", "item_no"]
+        unique_together = ["company", "item_no"]
         indexes = [
-            models.Index(fields=['company', 'active']),
-            models.Index(fields=['item_no']),
+            models.Index(fields=["company", "active"]),
+            models.Index(fields=["item_no"]),
         ]
 
     def __str__(self):

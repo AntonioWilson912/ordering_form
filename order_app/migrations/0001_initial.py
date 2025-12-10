@@ -10,52 +10,114 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('user_app', '0001_initial'),
-        ('company_app', '0001_initial'),
+        ("user_app", "0001_initial"),
+        ("company_app", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Order',
+            name="Order",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('date', models.DateTimeField(blank=True, default=django.utils.timezone.now)),
-                ('creator', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='user_orders', to='user_app.User')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "date",
+                    models.DateTimeField(blank=True, default=django.utils.timezone.now),
+                ),
+                (
+                    "creator",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="user_orders",
+                        to="user_app.User",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['date', 'creator'],
+                "ordering": ["date", "creator"],
             },
         ),
         migrations.CreateModel(
-            name='Product',
+            name="Product",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=255)),
-                ('item_no', models.CharField(default='', max_length=12)),
-                ('qty', models.PositiveIntegerField(default=0)),
-                ('item_type', models.CharField(choices=[('W', 'Weight'), ('C', 'Case')], max_length=1)),
-                ('active', models.BooleanField()),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('company', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='company_products', to='company_app.Company')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=255)),
+                ("item_no", models.CharField(default="", max_length=12)),
+                ("qty", models.PositiveIntegerField(default=0)),
+                (
+                    "item_type",
+                    models.CharField(
+                        choices=[("W", "Weight"), ("C", "Case")], max_length=1
+                    ),
+                ),
+                ("active", models.BooleanField()),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "company",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="company_products",
+                        to="company_app.Company",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['item_no'],
+                "ordering": ["item_no"],
             },
         ),
         migrations.CreateModel(
-            name='ProductOrder',
+            name="ProductOrder",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('order', models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, to='order_app.Order')),
-                ('product', models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, to='order_app.Product')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "order",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        to="order_app.Order",
+                    ),
+                ),
+                (
+                    "product",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        to="order_app.Product",
+                    ),
+                ),
             ],
         ),
         migrations.AddField(
-            model_name='order',
-            name='product_orders',
-            field=models.ManyToManyField(related_name='product_orders', through='order_app.ProductOrder', to='order_app.Product'),
+            model_name="order",
+            name="product_orders",
+            field=models.ManyToManyField(
+                related_name="product_orders",
+                through="order_app.ProductOrder",
+                to="order_app.Product",
+            ),
         ),
     ]

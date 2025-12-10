@@ -7,59 +7,69 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('company_app', '0002_alter_company_id'),
-        ('order_app', '0002_alter_product_options_productorder_quantity_and_more'),
-        ('user_app', '0002_alter_user_id'),
+        ("company_app", "0002_alter_company_id"),
+        ("order_app", "0002_alter_product_options_productorder_quantity_and_more"),
+        ("user_app", "0002_alter_user_id"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='order',
-            options={'ordering': ['-date']},
+            name="order",
+            options={"ordering": ["-date"]},
         ),
         migrations.AddField(
-            model_name='order',
-            name='created_at',
-            field=models.DateTimeField(auto_now_add=True, default=django.utils.timezone.now),
+            model_name="order",
+            name="created_at",
+            field=models.DateTimeField(
+                auto_now_add=True, default=django.utils.timezone.now
+            ),
             preserve_default=False,
         ),
         migrations.AddField(
-            model_name='order',
-            name='updated_at',
+            model_name="order",
+            name="updated_at",
             field=models.DateTimeField(auto_now=True),
         ),
         migrations.AlterField(
-            model_name='order',
-            name='date',
+            model_name="order",
+            name="date",
             field=models.DateTimeField(default=django.utils.timezone.now),
         ),
         migrations.AlterField(
-            model_name='product',
-            name='item_no',
-            field=models.CharField(blank=True, default='', max_length=12),
+            model_name="product",
+            name="item_no",
+            field=models.CharField(blank=True, default="", max_length=12),
         ),
         migrations.AlterUniqueTogether(
-            name='product',
-            unique_together={('company', 'item_no')},
+            name="product",
+            unique_together={("company", "item_no")},
         ),
         migrations.AddIndex(
-            model_name='order',
-            index=models.Index(fields=['-date'], name='order_app_o_date_cec500_idx'),
+            model_name="order",
+            index=models.Index(fields=["-date"], name="order_app_o_date_cec500_idx"),
         ),
         migrations.AddIndex(
-            model_name='order',
-            index=models.Index(fields=['creator'], name='order_app_o_creator_63b486_idx'),
+            model_name="order",
+            index=models.Index(
+                fields=["creator"], name="order_app_o_creator_63b486_idx"
+            ),
         ),
         migrations.AddIndex(
-            model_name='product',
-            index=models.Index(fields=['company', 'active'], name='order_app_p_company_bde851_idx'),
+            model_name="product",
+            index=models.Index(
+                fields=["company", "active"], name="order_app_p_company_bde851_idx"
+            ),
         ),
         migrations.AddIndex(
-            model_name='product',
-            index=models.Index(fields=['item_no'], name='order_app_p_item_no_7f80b3_idx'),
+            model_name="product",
+            index=models.Index(
+                fields=["item_no"], name="order_app_p_item_no_7f80b3_idx"
+            ),
         ),
         migrations.AddIndex(
-            model_name='productorder',
-            index=models.Index(fields=['order', 'product'], name='order_app_p_order_i_0fec45_idx'),
+            model_name="productorder",
+            index=models.Index(
+                fields=["order", "product"], name="order_app_p_order_i_0fec45_idx"
+            ),
         ),
     ]

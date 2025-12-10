@@ -6,23 +6,27 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('user_app', '0004_user_is_activated_accountactivationtoken_and_more'),
+        ("user_app", "0004_user_is_activated_accountactivationtoken_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='user',
-            name='display_name',
-            field=models.CharField(blank=True, help_text='Name to display when sending emails. Falls back to username if empty.', max_length=255),
+            model_name="user",
+            name="display_name",
+            field=models.CharField(
+                blank=True,
+                help_text="Name to display when sending emails. Falls back to username if empty.",
+                max_length=255,
+            ),
         ),
         migrations.AlterField(
-            model_name='user',
-            name='first_name',
+            model_name="user",
+            name="first_name",
             field=models.CharField(blank=True, max_length=150),
         ),
         migrations.AlterField(
-            model_name='user',
-            name='last_name',
+            model_name="user",
+            name="last_name",
             field=models.CharField(blank=True, max_length=150),
         ),
     ]
