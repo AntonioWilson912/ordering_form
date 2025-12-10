@@ -1,13 +1,15 @@
-from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout, update_session_auth_hash
 from django.contrib import messages
-from django.views.generic import ListView, TemplateView, UpdateView
+from django.views.generic import ListView, TemplateView, UpdateView, CreateView, DeleteView
+from django.http import JsonResponse
+from django.utils import timezone
 from django.conf import settings
 from django.urls import reverse_lazy
 from core.mixins import PageTitleMixin, LoginRequiredMixin
-from .forms import AccountSettingsForm, ChangePasswordForm
-from .models import User, PasswordResetToken, AccountActivationToken
+from .models import User, PasswordResetToken, AccountActivationToken, EmailTemplate
 from .services import EmailService
+from .forms import AccountSettingsForm, ChangePasswordForm, EmailTemplateForm
 
 
 def index(request):
@@ -61,6 +63,9 @@ def register(request):
             is_activated=False
         )
 
+        # Create default email template for user
+        EmailTemplate.create_default_template(user)
+
         # Generate activation token and send email
         raw_token, token_obj = AccountActivationToken.create_for_user(user)
         EmailService.send_activation_email(user, raw_token)
@@ -85,7 +90,10 @@ def login(request):
         user = authenticate(request, username=username, password=password)
 
         if user is not None:
-            # Check if account is activated
+            if not user.is_active:
+                messages.error(request, "Your account has been deactivated. Please contact support.")
+                return render(request, "user_app/login.html")
+
             if not user.is_activated:
                 messages.error(
                     request,
@@ -114,10 +122,10 @@ def resend_activation(request):
             user = User.objects.get(email=email, is_activated=False)
 
             if not user.can_resend_activation():
-                cooldown = settings.ACTIVATION_RESEND_COOLDOWN_SECONDS
+                remaining = user.get_resend_cooldown_remaining()
                 messages.error(
                     request,
-                    f"Please wait {cooldown} seconds before requesting another activation email."
+                    f"Please wait {remaining} seconds before requesting another activation email."
                 )
             else:
                 raw_token, token_obj = AccountActivationToken.create_for_user(user)
@@ -127,7 +135,6 @@ def resend_activation(request):
                     "Activation email sent! Please check your inbox."
                 )
         except User.DoesNotExist:
-            # Don't reveal if email exists or not
             messages.success(
                 request,
                 "If an account exists with this email, an activation link will be sent."
@@ -149,12 +156,10 @@ def activate_account(request, token):
         )
         return redirect('users:login')
 
-    # Activate the user
     user = token_obj.user
     user.is_activated = True
     user.save(update_fields=['is_activated'])
 
-    # Mark token as used
     token_obj.mark_used()
 
     messages.success(
@@ -172,17 +177,11 @@ def request_password_reset(request):
     if request.method == "POST":
         email = request.POST.get('email')
 
-        # Always show the same message regardless of whether email exists
-        # This prevents email enumeration attacks
         try:
             user = User.objects.get(email=email)
-
-            # Generate token and send email
             raw_token, token_obj = PasswordResetToken.create_for_user(user, request)
             EmailService.send_password_reset_email(user, raw_token, request)
-
         except User.DoesNotExist:
-            # Do nothing, but show same message
             pass
 
         messages.info(
@@ -206,7 +205,6 @@ def reset_password_confirm(request, token):
         return redirect('users:reset')
 
     if request.method == "POST":
-        # Re-validate token at submission time
         token_obj = PasswordResetToken.validate_token(token)
 
         if not token_obj:
@@ -234,15 +232,12 @@ def reset_password_confirm(request, token):
                 'valid': True
             })
 
-        # Update password
         user = token_obj.user
         user.set_password(password1)
         user.save()
 
-        # Blacklist the token
         token_obj.blacklist()
 
-        # Send notification email
         EmailService.send_password_changed_notification(user)
 
         messages.success(
@@ -251,7 +246,6 @@ def reset_password_confirm(request, token):
         )
         return redirect('users:login')
 
-    # Check if within same browser context (has session)
     auto_show_form = request.session.session_key is not None
 
     return render(request, "user_app/reset_password_confirm.html", {
@@ -266,21 +260,6 @@ def logout(request):
     auth_logout(request)
     messages.success(request, "You have been logged out.")
     return redirect("users:login")
-
-
-class UserListView(LoginRequiredMixin, PageTitleMixin, ListView):
-    model = User
-    template_name = 'user_app/user_list.html'
-    context_object_name = 'users'
-    page_title = 'All Users'
-
-    def get_queryset(self):
-        return User.objects.all().order_by('username')
-
-
-class HelpView(LoginRequiredMixin, PageTitleMixin, TemplateView):
-    template_name = 'user_app/help.html'
-    page_title = 'Help'
 
 
 class AccountSettingsView(LoginRequiredMixin, PageTitleMixin, UpdateView):
@@ -304,6 +283,8 @@ class AccountSettingsView(LoginRequiredMixin, PageTitleMixin, UpdateView):
         context = super().get_context_data(**kwargs)
         context['password_form'] = ChangePasswordForm(user=self.request.user)
         context['email_preview'] = self.request.user.get_email_sender_name()
+        context['email_templates'] = self.request.user.email_templates.all()
+        context['template_variables'] = EmailTemplate.get_available_variables()
         return context
 
 
@@ -319,21 +300,90 @@ def change_password(request):
             request.user.set_password(form.cleaned_data['new_password'])
             request.user.save()
 
-            # Re-authenticate to prevent logout
-            from django.contrib.auth import update_session_auth_hash
             update_session_auth_hash(request, request.user)
 
-            # Send notification email
             EmailService.send_password_changed_notification(request.user)
 
-            messages.success(request, 'Password changed successfully!')
+            messages.success(request, 'Your password has been changed successfully!')
             return redirect('users:account_settings')
         else:
-            # Pass errors back to the template
-            for error in form.non_field_errors():
-                messages.error(request, error)
+            # Handle errors more gracefully
             for field, errors in form.errors.items():
                 for error in errors:
-                    messages.error(request, f'{field}: {error}')
+                    if field == '__all__':
+                        messages.error(request, error)
+                    else:
+                        messages.error(request, error)
 
     return redirect('users:account_settings')
+
+
+class EmailTemplateCreateView(LoginRequiredMixin, PageTitleMixin, CreateView):
+    """Create a new email template"""
+    model = EmailTemplate
+    form_class = EmailTemplateForm
+    template_name = 'user_app/email_template_form.html'
+    page_title = 'Create Email Template'
+    success_url = reverse_lazy('users:account_settings')
+
+    def form_valid(self, form):
+        form.instance.user = self.request.user
+        messages.success(self.request, 'Email template created successfully!')
+        return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['template_variables'] = EmailTemplate.get_available_variables()
+        context['user_signature'] = self.request.user.email_signature
+        return context
+
+
+class EmailTemplateUpdateView(LoginRequiredMixin, PageTitleMixin, UpdateView):
+    """Edit an email template"""
+    model = EmailTemplate
+    form_class = EmailTemplateForm
+    template_name = 'user_app/email_template_form.html'
+    success_url = reverse_lazy('users:account_settings')
+
+    def get_queryset(self):
+        return EmailTemplate.objects.filter(user=self.request.user)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['page_title'] = f'Edit Template: {self.object.name}'
+        context['is_update'] = True
+        context['template_variables'] = EmailTemplate.get_available_variables()
+        context['user_signature'] = self.request.user.email_signature
+        return context
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Email template updated successfully!')
+        return super().form_valid(form)
+
+
+class EmailTemplateDeleteView(LoginRequiredMixin, DeleteView):
+    """Delete an email template"""
+    model = EmailTemplate
+    success_url = reverse_lazy('users:account_settings')
+
+    def get_queryset(self):
+        return EmailTemplate.objects.filter(user=self.request.user)
+
+    def delete(self, request, *args, **kwargs):
+        messages.success(request, 'Email template deleted successfully!')
+        return super().delete(request, *args, **kwargs)
+
+
+class UserListView(LoginRequiredMixin, PageTitleMixin, ListView):
+    model = User
+    template_name = 'user_app/user_list.html'
+    context_object_name = 'users'
+    page_title = 'All Users'
+
+    def get_queryset(self):
+        return User.objects.all().order_by('username')
+
+
+class HelpView(LoginRequiredMixin, PageTitleMixin, TemplateView):
+    template_name = 'user_app/help.html'
+    page_title = 'Help'

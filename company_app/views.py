@@ -5,6 +5,7 @@ from core.mixins import LoginRequiredMixin, PageTitleMixin
 from .models import Company
 from .forms import CompanyForm
 
+
 class CompanyListView(LoginRequiredMixin, PageTitleMixin, ListView):
     model = Company
     template_name = 'company_app/company_list.html'
@@ -20,6 +21,7 @@ class CompanyListView(LoginRequiredMixin, PageTitleMixin, ListView):
             )
         ).order_by('name')
 
+
 class CompanyDetailView(LoginRequiredMixin, PageTitleMixin, DetailView):
     model = Company
     template_name = 'company_app/company_detail.html'
@@ -30,6 +32,7 @@ class CompanyDetailView(LoginRequiredMixin, PageTitleMixin, DetailView):
         context['page_title'] = f"{self.object.name} - Details"
         context['products'] = self.object.company_products.all().order_by('item_no')
         return context
+
 
 class CompanyUpdateView(LoginRequiredMixin, PageTitleMixin, UpdateView):
     model = Company
@@ -44,6 +47,7 @@ class CompanyUpdateView(LoginRequiredMixin, PageTitleMixin, UpdateView):
         context['page_title'] = f"Edit {self.object.name}"
         context['is_update'] = True
         return context
+
 
 class CompanyCreateView(LoginRequiredMixin, PageTitleMixin, CreateView):
     model = Company

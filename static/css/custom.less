@@ -59,6 +59,110 @@ body {
   overflow-x: hidden;
 }
 
+// ============================================================================
+// === IMPROVED LINK STYLES ===
+// ============================================================================
+a {
+  color: @nice-blue;
+  text-decoration: none;
+  transition: @transition;
+  font-weight: 500;
+
+  &:hover {
+    color: darken(@nice-blue, 15%);
+    text-decoration: none;
+  }
+
+  &:focus {
+    outline: 2px solid rgba(91, 131, 173, 0.3);
+    outline-offset: 2px;
+  }
+}
+
+// Links within content areas
+.main {
+  a:not(.btn) {
+    color: @nice-blue;
+    border-bottom: 1px solid transparent;
+    transition: @transition;
+
+    &:hover {
+      color: darken(@nice-blue, 15%);
+      border-bottom-color: @nice-blue;
+    }
+  }
+}
+
+// Table links
+.table {
+  a {
+    color: @nice-blue;
+    font-weight: 600;
+    position: relative;
+
+    &::after {
+      content: "";
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background-color: @nice-blue;
+      transition: width 0.3s ease;
+    }
+
+    &:hover::after {
+      width: 100%;
+    }
+  }
+}
+
+// Auth links
+.auth-links {
+  a {
+    color: @nice-blue;
+    font-weight: 600;
+
+    &:hover {
+      color: @nice-orange;
+    }
+  }
+}
+
+// Navigation links in cards
+.order-card,
+.settings-card,
+.detail-info {
+  a:not(.btn) {
+    color: @nice-blue;
+    font-weight: 600;
+
+    &:hover {
+      color: @nice-orange;
+    }
+  }
+}
+
+// Breadcrumb-style links
+.breadcrumb-link {
+  color: @medium-gray;
+  font-size: 0.9rem;
+
+  &:hover {
+    color: @nice-blue;
+  }
+
+  &::after {
+    content: "›";
+    margin: 0 @spacing-10;
+    color: @light-gray;
+  }
+
+  &:last-child::after {
+    display: none;
+  }
+}
+
 // === Layout ===
 .wrapper {
   display: flex;
@@ -75,7 +179,7 @@ body {
   }
 }
 
-// === Sidebar === (kept same as before)
+// === Sidebar ===
 #sidebar {
   width: @sidebar-width-expanded;
   background-color: @nice-blue;
@@ -155,6 +259,15 @@ body {
         gap: @spacing-15;
         font-weight: 500;
         transition: @transition;
+        border-bottom: none;
+
+        &:hover {
+          border-bottom: none;
+        }
+
+        &::after {
+          display: none;
+        }
 
         .fa-solid,
         .fa-regular {
@@ -189,11 +302,11 @@ body {
   display: flex;
   flex-direction: column;
   transition: @transition;
+}
 
-  #sidebar.collapsed ~ & {
-    margin-left: @sidebar-width-collapsed;
-    width: calc(100% - @sidebar-width-collapsed);
-  }
+body.sidebar-collapsed #content {
+  margin-left: @sidebar-width-collapsed;
+  width: calc(100% - @sidebar-width-collapsed);
 }
 
 // === Navbar ===
@@ -226,7 +339,6 @@ body {
 
 #user-label {
   font-size: 0.95rem;
-
   #logged-in-username {
     font-weight: 700;
   }
@@ -249,7 +361,6 @@ body {
 
 #user-icon-chevron {
   transition: @transition;
-
   &.rotated {
     transform: rotate(180deg);
   }
@@ -278,11 +389,9 @@ body {
     &:hover {
       background-color: rgba(255, 255, 255, 0.1);
     }
-
     &:first-child {
       border-radius: @border-radius @border-radius 0 0;
     }
-
     &:last-child {
       border-radius: 0 0 @border-radius @border-radius;
     }
@@ -291,13 +400,19 @@ body {
       text-decoration: none;
       color: @white;
       font-weight: 500;
+      border-bottom: none;
+
+      &:hover {
+        border-bottom: none;
+      }
+      &::after {
+        display: none;
+      }
     }
   }
 }
 
-// ============================================================================
-// === FIXED BANNER STYLES ===
-// ============================================================================
+// === Banner ===
 .banner {
   padding: @spacing-15 @spacing-20;
   display: flex;
@@ -307,71 +422,28 @@ body {
   margin: @spacing-15 @spacing-20 0;
   font-weight: 500;
   animation: slideDown 0.3s ease;
-
-  // Default styling (in case no modifier class)
   background-color: @light-gray;
   color: @dark-gray;
 
-  // Warning - red background (errors)
   &.banner-warning,
   &.banner-error {
     background-color: @warning-red;
     color: @white;
   }
 
-  // Success - green background
   &.banner-success {
     background-color: @success-green;
     color: @white;
   }
 
-  // Info - blue background
   &.banner-info {
     background-color: @info-blue;
     color: @white;
   }
 
-  // Debug/default messages from Django
   &.banner-debug {
     background-color: @medium-gray;
     color: @white;
-  }
-}
-
-// Handle Django message tags that might come through differently
-.messages {
-  list-style: none;
-  padding: 0;
-  margin: @spacing-15 @spacing-20 0;
-
-  .message {
-    padding: @spacing-15 @spacing-20;
-    border-radius: @border-radius;
-    margin-bottom: @spacing-10;
-    font-weight: 500;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-
-    &.warning {
-      background-color: @warning-red;
-      color: @white;
-    }
-
-    &.success {
-      background-color: @success-green;
-      color: @white;
-    }
-
-    &.info {
-      background-color: @info-blue;
-      color: @white;
-    }
-
-    &.error {
-      background-color: @warning-red;
-      color: @white;
-    }
   }
 }
 
@@ -390,7 +462,6 @@ body {
   cursor: pointer;
   font-size: 1.2rem;
   transition: @transition;
-
   &:hover {
     transform: scale(1.2);
   }
@@ -436,27 +507,27 @@ body {
   &-blue {
     background-color: @nice-blue;
     color: @white;
-
     &:hover {
       background-color: @light-blue;
+      color: @white;
     }
   }
 
   &-orange {
     background-color: @nice-orange;
     color: @white;
-
     &:hover {
       background-color: @light-orange;
+      color: @white;
     }
   }
 
   &-green {
     background-color: @nice-green;
     color: @white;
-
     &:hover {
       background-color: darken(@nice-green, 10%);
+      color: @white;
     }
   }
 
@@ -464,7 +535,6 @@ body {
     background: @white;
     color: @nice-blue;
     border: 2px solid @nice-blue;
-
     &:hover {
       background: @nice-blue;
       color: @white;
@@ -479,55 +549,19 @@ body {
   &-pointer {
     cursor: pointer;
   }
+
+  &-danger {
+    background-color: @warning-red;
+    color: @white;
+    &:hover {
+      background-color: darken(@warning-red, 10%);
+      color: @white;
+    }
+  }
 }
 
 .m-10 {
   margin: @spacing-10;
-}
-
-// === Auth Pages ===
-.auth-container {
-  min-height: 100vh;
-  .flex-center();
-  background-color: @lightest-gray;
-
-  .form-errors {
-    background: lighten(@warning-red, 40%);
-    border: 1px solid @warning-red;
-    border-radius: @border-radius-sm;
-    padding: @spacing-15;
-    margin-bottom: @spacing-20;
-  }
-}
-
-.auth-card {
-  background: @white;
-  border-radius: @border-radius;
-  padding: @spacing-40;
-  width: 100%;
-  max-width: 400px;
-  .card-shadow();
-
-  h2 {
-    color: @nice-blue;
-    text-align: center;
-    margin-bottom: @spacing-30;
-  }
-
-  .auth-links {
-    margin-top: @spacing-20;
-    text-align: center;
-    font-size: 0.9rem;
-
-    a {
-      color: @nice-blue;
-      text-decoration: none;
-
-      &:hover {
-        text-decoration: underline;
-      }
-    }
-  }
 }
 
 // === Forms ===
@@ -592,6 +626,12 @@ body {
       border-color: @nice-blue;
       box-shadow: 0 0 0 3px rgba(91, 131, 173, 0.1);
     }
+
+    &[readonly] {
+      background-color: @lightest-gray;
+      color: @medium-gray;
+      cursor: not-allowed;
+    }
   }
 
   &-error {
@@ -614,6 +654,18 @@ body {
   font-size: 0.85rem;
   color: @medium-gray;
   margin-top: @spacing-5;
+}
+
+.form-check {
+  display: flex;
+  align-items: center;
+  gap: @spacing-10;
+}
+
+.form-check-input {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
 }
 
 .elegant-form {
@@ -723,7 +775,6 @@ body {
   &-striped tbody tr {
     &:nth-child(odd) {
       background-color: #fafafa;
-
       &:hover {
         background-color: @lightest-gray;
       }
@@ -732,7 +783,6 @@ body {
 
   &-sm {
     font-size: 0.9rem;
-
     th,
     td {
       padding: @spacing-10;
@@ -751,9 +801,16 @@ body {
     background: @success-green;
     color: @white;
   }
-
   &-danger {
     background: @warning-red;
+    color: @white;
+  }
+  &-warning {
+    background: @warning-yellow;
+    color: @dark-gray;
+  }
+  &-info {
+    background: @info-blue;
     color: @white;
   }
 }
@@ -806,6 +863,53 @@ body {
   font-weight: 700;
   color: @nice-blue;
   margin: @spacing-5 0 0 0;
+}
+
+// === Auth Pages ===
+.auth-container {
+  min-height: 100vh;
+  .flex-center();
+  background-color: @lightest-gray;
+
+  .form-errors {
+    background: lighten(@warning-red, 40%);
+    border: 1px solid @warning-red;
+    border-radius: @border-radius-sm;
+    padding: @spacing-15;
+    margin-bottom: @spacing-20;
+  }
+}
+
+.auth-card {
+  background: @white;
+  border-radius: @border-radius;
+  padding: @spacing-40;
+  width: 100%;
+  max-width: 400px;
+  .card-shadow();
+
+  h2 {
+    color: @nice-blue;
+    text-align: center;
+    margin-bottom: @spacing-30;
+  }
+
+  .auth-links {
+    margin-top: @spacing-20;
+    text-align: center;
+    font-size: 0.9rem;
+
+    a {
+      color: @nice-blue;
+      text-decoration: none;
+      font-weight: 600;
+
+      &:hover {
+        color: @nice-orange;
+        text-decoration: none;
+      }
+    }
+  }
 }
 
 // === Order Cards ===
@@ -869,7 +973,6 @@ body {
   }
 }
 
-// === Order Actions ===
 .order-actions {
   position: relative;
   display: flex;
@@ -927,9 +1030,13 @@ body {
         cursor: pointer;
         transition: @transition;
         font-size: 0.95rem;
+        font-weight: 500;
 
         &:hover {
           background-color: @lightest-gray;
+        }
+        &::after {
+          display: none;
         }
 
         i {
@@ -946,7 +1053,7 @@ body {
   position: fixed;
   bottom: 20px;
   right: 20px;
-  width: 500px;
+  width: 550px;
   background: @white;
   border: 1px solid @lighter-gray;
   border-radius: @border-radius;
@@ -963,7 +1070,6 @@ body {
     .email-body {
       display: none;
     }
-
     .email-header {
       border-radius: @border-radius;
     }
@@ -1027,7 +1133,8 @@ body {
       }
 
       input,
-      textarea {
+      textarea,
+      select {
         width: 100%;
         padding: @spacing-10;
         border: 1px solid @lighter-gray;
@@ -1096,7 +1203,6 @@ body {
   &.success {
     background: @success-green;
   }
-
   &.error {
     background: @warning-red;
   }
@@ -1115,7 +1221,204 @@ body {
   }
 }
 
-// === Company Details ===
+.template-selector {
+  margin-bottom: @spacing-15;
+  padding-bottom: @spacing-15;
+  border-bottom: 1px solid @lighter-gray;
+}
+
+// === Settings Page ===
+.settings-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.settings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+  gap: @spacing-25;
+  margin-top: @spacing-20;
+}
+
+.settings-card {
+  background: @white;
+  border-radius: @border-radius;
+  padding: @spacing-25;
+  .card-shadow();
+
+  h2 {
+    color: @nice-blue;
+    font-size: 1.3rem;
+    margin: 0 0 @spacing-20 0;
+    padding-bottom: @spacing-10;
+    border-bottom: 2px solid @nice-blue;
+
+    i {
+      margin-right: @spacing-10;
+    }
+  }
+
+  h3 {
+    font-size: 1rem;
+    color: @dark-gray;
+    margin: 0 0 @spacing-10 0;
+  }
+}
+
+.settings-form {
+  .form-group {
+    margin-bottom: @spacing-20;
+  }
+
+  label {
+    display: block;
+    font-weight: 600;
+    color: @dark-gray;
+    margin-bottom: @spacing-10;
+  }
+
+  .form-control {
+    width: 100%;
+    padding: @spacing-10;
+    border: 1px solid @lighter-gray;
+    border-radius: @border-radius-sm;
+    font-size: 1rem;
+    transition: @transition;
+
+    &:focus {
+      outline: none;
+      border-color: @nice-blue;
+      box-shadow: 0 0 0 3px rgba(91, 131, 173, 0.1);
+    }
+
+    &[readonly] {
+      background-color: @lightest-gray;
+      color: @medium-gray;
+    }
+  }
+}
+
+.email-preview-box {
+  background: @lightest-gray;
+  border: 1px solid @lighter-gray;
+  border-radius: @border-radius-sm;
+  padding: @spacing-15;
+  margin: @spacing-15 0;
+}
+
+.preview-line {
+  margin: @spacing-10 0;
+  font-size: 0.95rem;
+
+  strong {
+    color: @medium-gray;
+    min-width: 70px;
+    display: inline-block;
+  }
+}
+
+.account-info {
+  padding: @spacing-10 0;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  padding: @spacing-15 0;
+  border-bottom: 1px solid @lightest-gray;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.info-label {
+  font-weight: 600;
+  color: @medium-gray;
+}
+
+.info-value {
+  color: @dark-gray;
+}
+
+// === Templates List ===
+.templates-section {
+  margin-top: @spacing-30;
+}
+
+.template-list {
+  list-style: none;
+  padding: 0;
+  margin: @spacing-15 0;
+}
+
+.template-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: @spacing-15;
+  background: @lightest-gray;
+  border-radius: @border-radius-sm;
+  margin-bottom: @spacing-10;
+  transition: @transition;
+
+  &:hover {
+    background: darken(@lightest-gray, 5%);
+  }
+
+  .template-info {
+    flex: 1;
+
+    .template-name {
+      font-weight: 600;
+      color: @dark-gray;
+      display: flex;
+      align-items: center;
+      gap: @spacing-10;
+    }
+
+    .template-preview {
+      font-size: 0.85rem;
+      color: @medium-gray;
+      margin-top: @spacing-5;
+    }
+  }
+
+  .template-actions {
+    display: flex;
+    gap: @spacing-10;
+  }
+}
+
+.variables-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: @spacing-10;
+  margin-top: @spacing-15;
+}
+
+.variable-item {
+  background: @lightest-gray;
+  padding: @spacing-10;
+  border-radius: @border-radius-sm;
+  font-size: 0.85rem;
+
+  code {
+    color: @nice-blue;
+    font-weight: 600;
+    background: @white;
+    padding: 2px 6px;
+    border-radius: 3px;
+  }
+
+  span {
+    display: block;
+    margin-top: @spacing-5;
+    color: @medium-gray;
+  }
+}
+
+// === Detail Pages ===
 .detail-header {
   display: flex;
   justify-content: space-between;
@@ -1177,11 +1480,15 @@ body {
 .text-center {
   text-align: center;
 }
-
+.text-right {
+  text-align: right;
+}
 .mb-20 {
   margin-bottom: @spacing-20;
 }
-
+.mt-20 {
+  margin-top: @spacing-20;
+}
 .quantity-input {
   max-width: 100px;
 }
@@ -1204,6 +1511,12 @@ body {
 }
 
 // === Responsive ===
+@media (max-width: 992px) {
+  .settings-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 768px) {
   #sidebar {
     width: @sidebar-width-collapsed;
@@ -1219,7 +1532,6 @@ body {
 
     ul.list-unstyled.components li a {
       justify-content: center;
-
       span {
         display: none;
       }
@@ -1242,5 +1554,11 @@ body {
   .order-header {
     flex-direction: column;
     gap: @spacing-10;
+  }
+
+  .email-composer {
+    width: calc(100% - 40px);
+    left: 20px;
+    right: 20px;
   }
 }

@@ -1,0 +1,184 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load timezone_tags %}
+{% block content %}
+    <div class="form-wrapper">
+        <form class="form elegant-form" id="editOrderForm" method="post">
+            {% csrf_token %}
+            <input type="hidden" name="order_id" value="{{ order.id }}">
+            <div class="form-heading">
+                <i class="fa-solid fa-edit"></i>
+                Edit Order #{{ order.id }}
+            </div>
+            <div class="form-content">
+                <div class="order-info-summary">
+                    <p>
+                        <strong>Company:</strong> {{ company.name }}
+                    </p>
+                    <p>
+                        <strong>Created:</strong> {% user_datetime order.created_at request.user "F d, Y g:i A" %}
+                    </p>
+                    <p>
+                        <strong>Created by:</strong> {{ order.creator.username }}
+                    </p>
+                </div>
+                {% if products %}
+                    <table class="table table-striped">
+                        <caption>Products from {{ company.name }}</caption>
+                        <thead>
+                            <tr>
+                                <th>Item No.</th>
+                                <th>Name</th>
+                                <th>Type</th>
+                                <th>Quantity</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for product in products %}
+                                <tr class="{% if product.id in current_quantities %}in-order{% endif %}">
+                                    <td>{{ product.item_no|default:"N/A" }}</td>
+                                    <td>{{ product.name }}</td>
+                                    <td>{{ product.get_item_type_display_name }}</td>
+                                    <td>
+                                        <input type="number"
+                                               name="product_{{ product.id }}"
+                                               id="product_{{ product.id }}"
+                                               value="{{ current_quantities|default_if_none:0 }}"
+                                               data-initial="{{ current_quantities|default_if_none:0 }}"
+                                               min="0"
+                                               class="form-control quantity-input">
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <p class="no-data">No active products found for this company.</p>
+                {% endif %}
+                <div class="form-submit">
+                    <button type="submit" class="btn btn-blue" id="saveOrderBtn">
+                        <i class="fa-solid fa-save"></i> Save Changes
+                    </button>
+                    <a href="{% url 'orders:order_list' %}" class="btn btn-outline">Cancel</a>
+                </div>
+            </div>
+        </form>
+    </div>
+{% endblock %}
+{% block extra_css %}
+    <style>
+    .order-info-summary {
+        background: #f8f9fa;
+        padding: 15px 20px;
+        border-radius: 8px;
+        margin-bottom: 25px;
+        border-left: 4px solid #5b83ad;
+    }
+
+    .order-info-summary p {
+        margin: 8px 0;
+        color: #333;
+    }
+
+    .order-info-summary strong {
+        color: #5b83ad;
+    }
+
+    tr.in-order {
+        background-color: #e8f4fd !important;
+    }
+
+    .quantity-input.changed {
+        border-color: #ff8c42;
+        background-color: #fff8f0;
+    }
+    </style>
+{% endblock %}
+{% block extra_js %}
+    <script>
+const ORDER_LIST_URL = "{% url 'orders:order_list' %}";
+const UPDATE_URL = "/api/orders/{{ order.id }}/update/";
+
+// Set initial values from current quantities
+const currentQuantities = {
+    {% for product_id, qty in current_quantities.items %}
+    '{{ product_id }}': {{ qty }}{% if not forloop.last %},{% endif %}
+    {% endfor %}
+};
+
+$(document).ready(function() {
+    // Set initial values
+    for (const [productId, qty] of Object.entries(currentQuantities)) {
+        $(`#product_${productId}`).val(qty).attr('data-initial', qty);
+    }
+
+    // Track changes
+    $('.quantity-input').on('input', function() {
+        const initial = parseInt($(this).attr('data-initial')) || 0;
+        const current = parseInt($(this).val()) || 0;
+
+        if (initial !== current) {
+            $(this).addClass('changed');
+        } else {
+            $(this).removeClass('changed');
+        }
+    });
+
+    // Form submission
+    $('#editOrderForm').submit(function(e) {
+        e.preventDefault();
+
+        const orderData = {
+            csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val()
+        };
+
+        let hasItems = false;
+        $('input[name^="product_"]').each(function() {
+            const quantity = parseInt($(this).val()) || 0;
+            orderData[$(this).attr('name')] = quantity;
+            if (quantity > 0) hasItems = true;
+        });
+
+        if (!hasItems) {
+            showBanner('Order must have at least one product with quantity greater than 0.', 'warning');
+            return;
+        }
+
+        $.ajax({
+            type: 'POST',
+            url: UPDATE_URL,
+            data: orderData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            success: function(data) {
+                if (data.success) {
+                    showBanner(data.message, 'success');
+                    setTimeout(function() {
+                        window.location.href = ORDER_LIST_URL;
+                    }, 1500);
+                } else {
+                    showBanner(data.message || 'Failed to update order', 'warning');
+                }
+            },
+            error: function(xhr) {
+                const errorMsg = xhr.responseJSON?.message || 'An error occurred';
+                showBanner(errorMsg, 'warning');
+            }
+        });
+    });
+
+    function showBanner(message, type) {
+        $('#bannerText').text(message);
+        $('#banner')
+            .removeClass('banner-success banner-warning banner-info')
+            .addClass(`banner-${type}`)
+            .show();
+
+        $('html, body').animate({
+            scrollTop: $('#banner').offset().top - 100
+        }, 300);
+    }
+});
+    </script>
+{% endblock %}

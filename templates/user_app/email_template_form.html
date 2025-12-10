@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+    <div class="form-wrapper">
+        <form class="form elegant-form" method="post">
+            {% csrf_token %}
+            <div class="form-heading">
+                <i class="fa-solid fa-file-alt"></i>
+                {% if is_update %}
+                    Edit Email Template
+                {% else %}
+                    Create Email Template
+                {% endif %}
+            </div>
+            <div class="form-content">
+                <div class="form-group">
+                    <label for="id_name">Template Name</label>
+                    {{ form.name }}
+                    <small class="form-text">A name to identify this template (e.g., "Standard Order", "Rush Order")</small>
+                    {% if form.name.errors %}<div class="form-error">{{ form.name.errors.0 }}</div>{% endif %}
+                </div>
+                <div class="form-group">
+                    <label for="id_subject_template">Email Subject</label>
+                    {{ form.subject_template }}
+                    <small class="form-text">You can use: %company_name%, %order_id%, %order_date%</small>
+                    {% if form.subject_template.errors %}<div class="form-error">{{ form.subject_template.errors.0 }}</div>{% endif %}
+                </div>
+                <div class="form-group">
+                    <label for="id_body_template">Email Body</label>
+                    {{ form.body_template }}
+                    {% if form.body_template.errors %}<div class="form-error">{{ form.body_template.errors.0 }}</div>{% endif %}
+                </div>
+                <div class="form-group">
+                    <label class="form-check">
+                        {{ form.is_default }}
+                        Set as default template
+                    </label>
+                    <small class="form-text">This template will be used by default when composing emails.</small>
+                </div>
+                <!-- Variables Reference -->
+                <div class="variables-reference">
+                    <h4>Available Variables</h4>
+                    <div class="variables-list">
+                        {% for var in template_variables %}
+                            <div class="variable-item">
+                                <code>{{ var.var }}</code>
+                                <span>{{ var.desc }}</span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <!-- Preview Section -->
+                <div class="template-preview-section">
+                    <h4>Your Current Signature</h4>
+                    <div class="preview-box">
+                        <pre>{{ user_signature|default:"(No signature set - set one in Account Settings)" }}</pre>
+                    </div>
+                    <small class="form-text">Use %signature% in your template to include this.</small>
+                </div>
+                <div class="form-submit">
+                    <button type="submit" class="btn btn-blue">
+                        <i class="fa-solid fa-save"></i>
+                        {% if is_update %}
+                            Update Template
+                        {% else %}
+                            Create Template
+                        {% endif %}
+                    </button>
+                    <a href="{% url 'users:account_settings' %}" class="btn btn-outline">Cancel</a>
+                </div>
+            </div>
+        </form>
+    </div>
+{% endblock %}
+{% block extra_css %}
+    <style>
+    .variables-reference {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 20px;
+        margin: 25px 0;
+    }
+
+    .variables-reference h4 {
+        color: #5b83ad;
+        margin: 0 0 15px 0;
+        font-size: 1rem;
+    }
+
+    .template-preview-section {
+        margin: 25px 0;
+    }
+
+    .template-preview-section h4 {
+        color: #333;
+        margin: 0 0 10px 0;
+        font-size: 1rem;
+    }
+
+    .preview-box {
+        background: #f8f9fa;
+        border: 1px solid #e0e0e0;
+        border-radius: 4px;
+        padding: 15px;
+    }
+
+    .preview-box pre {
+        margin: 0;
+        font-family: 'Quicksand', sans-serif;
+        white-space: pre-wrap;
+        color: #666;
+        font-size: 0.9rem;
+    }
+    </style>
+{% endblock %}

@@ -1,8 +1,11 @@
 from django.views.generic import ListView, TemplateView
+from django.shortcuts import get_object_or_404
 from django.db import models
 from core.mixins import PageTitleMixin, LoginRequiredMixin
 from company_app.models import Company
+from product_app.models import Product
 from .models import Order
+
 
 class OrderListView(LoginRequiredMixin, PageTitleMixin, ListView):
     model = Order
@@ -34,22 +37,54 @@ class OrderListView(LoginRequiredMixin, PageTitleMixin, ListView):
         context['orders_with_details'] = orders_with_details
         return context
 
+
 class NewOrderView(LoginRequiredMixin, PageTitleMixin, TemplateView):
     template_name = 'order_app/new_order.html'
     page_title = 'Create New Order'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['companies'] = Company.objects.annotate(
+        # Only show active companies with active products
+        context['companies'] = Company.objects.filter(is_active=True).annotate(
             active_product_count=models.Count(
                 'company_products',
                 filter=models.Q(company_products__active=True)
             )
         ).filter(active_product_count__gt=0)
 
-        # Pre-select company if specified
         company_id = self.request.GET.get('company')
         if company_id:
             context['selected_company_id'] = int(company_id)
+
+        return context
+
+
+class EditOrderView(LoginRequiredMixin, PageTitleMixin, TemplateView):
+    template_name = 'order_app/edit_order.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        order = get_object_or_404(
+            Order.objects.select_related('creator').prefetch_related(
+                'productorder_set__product__company'
+            ),
+            pk=kwargs['pk']
+        )
+
+        context['order'] = order
+        context['page_title'] = f'Edit Order #{order.id}'
+
+        # Get the company for this order
+        company = order.get_company()
+        context['company'] = company
+
+        if company:
+            # Get ALL active products from this company
+            all_products = company.company_products.filter(active=True).order_by('item_no')
+            context['products'] = all_products
+
+            # Get current quantities for products in the order
+            context['current_quantities'] = order.get_products_dict()
 
         return context

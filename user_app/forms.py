@@ -1,5 +1,5 @@
 from django import forms
-from .models import User
+from .models import User, EmailTemplate
 
 
 class RegisterUserForm(forms.Form):
@@ -23,7 +23,7 @@ class AccountSettingsForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ['first_name', 'last_name', 'display_name', 'email', 'timezone']
+        fields = ['first_name', 'last_name', 'display_name', 'email', 'email_signature', 'timezone']
         widgets = {
             'first_name': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -41,6 +41,11 @@ class AccountSettingsForm(forms.ModelForm):
                 'class': 'form-control',
                 'placeholder': 'your@email.com'
             }),
+            'email_signature': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 4,
+                'placeholder': 'Thank you,\nYour Name'
+            }),
             'timezone': forms.Select(attrs={
                 'class': 'form-control'
             }),
@@ -48,15 +53,14 @@ class AccountSettingsForm(forms.ModelForm):
         help_texts = {
             'display_name': 'This name will appear when you send order emails. If empty, your username will be used.',
             'email': 'Replies to order emails will be sent to this address.',
+            'email_signature': 'Your signature will appear where %signature% is used in email templates.',
         }
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Make email read-only if user is editing their own profile
-        # (email changes might require re-verification)
-        if self.instance and self.instance.pk:
-            self.fields['email'].widget.attrs['readonly'] = True
-            self.fields['email'].help_text = 'Contact support to change your email address.'
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if email and User.objects.filter(email=email).exclude(pk=self.instance.pk).exists():
+            raise forms.ValidationError("This email address is already in use.")
+        return email
 
 
 class ChangePasswordForm(forms.Form):
@@ -91,7 +95,7 @@ class ChangePasswordForm(forms.Form):
     def clean_current_password(self):
         current_password = self.cleaned_data.get('current_password')
         if not self.user.check_password(current_password):
-            raise forms.ValidationError("Current password is incorrect.")
+            raise forms.ValidationError("Your current password is incorrect.")
         return current_password
 
     def clean(self):
@@ -101,6 +105,37 @@ class ChangePasswordForm(forms.Form):
 
         if new_password and confirm_password:
             if new_password != confirm_password:
-                raise forms.ValidationError("New passwords do not match.")
+                raise forms.ValidationError({
+                    'confirm_password': "The new passwords don't match. Please try again."
+                })
 
         return cleaned_data
+
+
+class EmailTemplateForm(forms.ModelForm):
+    """Form for creating/editing email templates"""
+
+    class Meta:
+        model = EmailTemplate
+        fields = ['name', 'subject_template', 'body_template', 'is_default']
+        widgets = {
+            'name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'e.g., Standard Order, Rush Order'
+            }),
+            'subject_template': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Order Request for %company_name%'
+            }),
+            'body_template': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 10,
+                'placeholder': 'Hello,\n\nHere is my order:\n\n%order_items%\n\n%signature%'
+            }),
+            'is_default': forms.CheckboxInput(attrs={
+                'class': 'form-check-input'
+            }),
+        }
+        labels = {
+            'is_default': 'Set as default template',
+        }
