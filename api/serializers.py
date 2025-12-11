@@ -57,11 +57,10 @@ class ProductSerializer(serializers.ModelSerializer):
 
 class ProductCreateSerializer(serializers.Serializer):
     """Serializer for creating products via AJAX"""
-
     company_id = serializers.IntegerField()
-    name = serializers.CharField(min_length=3, max_length=255)
+    name = serializers.CharField(min_length=2, max_length=255)
     item_no = serializers.CharField(required=False, allow_blank=True, max_length=12)
-    item_type = serializers.ChoiceField(choices=["C", "W"])
+    item_type = serializers.ChoiceField(choices=['C', 'W'])
 
     def validate_company_id(self, value):
         if value == -1:
@@ -70,26 +69,58 @@ class ProductCreateSerializer(serializers.Serializer):
             raise serializers.ValidationError("Company not found.")
         return value
 
-    def validate(self, data):
-        item_no = data.get("item_no", "")
-        company_id = data.get("company_id")
+    def validate_name(self, value):
+        """Validate that name is not empty after stripping"""
+        value = value.strip()
+        if len(value) < 2:
+            raise serializers.ValidationError("Name must be at least 2 characters long.")
+        return value
 
+    def validate_item_no(self, value):
+        """Clean and validate item_no"""
+        if value:
+            value = value.strip()
+        return value or ''  # Convert None or empty to empty string
+
+    def validate(self, data):
+        """Cross-field validation"""
+        company_id = data.get('company_id')
+        name = data.get('name', '').strip()
+        item_no = data.get('item_no', '').strip()
+
+        # Check for duplicate name within company
+        if name and company_id:
+            existing_name = Product.objects.filter(
+                company_id=company_id,
+                name__iexact=name
+            ).exists()
+
+            if existing_name:
+                raise serializers.ValidationError({
+                    'name': "A product with this name already exists for the selected company."
+                })
+
+        # Check for duplicate item_no within company (only if item_no is provided)
         if item_no and company_id:
-            if Product.objects.filter(company_id=company_id, item_no=item_no).exists():
-                raise serializers.ValidationError(
-                    {
-                        "item_no": "This item number already exists for the selected company."
-                    }
-                )
+            existing_item_no = Product.objects.filter(
+                company_id=company_id,
+                item_no=item_no
+            ).exists()
+
+            if existing_item_no:
+                raise serializers.ValidationError({
+                    'item_no': "This item number already exists for the selected company."
+                })
+
         return data
 
     def create(self, validated_data):
-        company = Company.objects.get(id=validated_data["company_id"])
+        company = Company.objects.get(id=validated_data['company_id'])
         return Product.objects.create(
             company=company,
-            name=validated_data["name"],
-            item_no=validated_data.get("item_no", ""),
-            item_type=validated_data["item_type"],
+            name=validated_data['name'].strip(),
+            item_no=validated_data.get('item_no', '').strip(),
+            item_type=validated_data['item_type']
         )
 
 

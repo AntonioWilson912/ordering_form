@@ -3,7 +3,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from django.db import transaction
+from django.db import transaction, IntegrityError
 from django.conf import settings
 from django.http import HttpResponse
 from django.utils import timezone
@@ -16,10 +16,8 @@ from user_app.models import User, EmailTemplate
 from user_app.services import EmailService
 from core.api_mixins import AjaxRequiredMixin, StandardResponseMixin
 from .serializers import (
-    ProductSerializer,
-    ProductCreateSerializer,
-    OrderSerializer,
-    OrderCreateSerializer,
+    ProductSerializer, ProductCreateSerializer, OrderSerializer,
+    OrderCreateSerializer
 )
 
 
@@ -200,11 +198,8 @@ class UpdateOrderView(AjaxRequiredMixin, StandardResponseMixin, APIView):
             )
 
 
-class CreateProductView(
-    AjaxRequiredMixin, StandardResponseMixin, generics.CreateAPIView
-):
+class CreateProductView(AjaxRequiredMixin, StandardResponseMixin, generics.CreateAPIView):
     """Generic view for creating products."""
-
     serializer_class = ProductCreateSerializer
     permission_classes = [IsAuthenticated]
 
@@ -212,21 +207,52 @@ class CreateProductView(
         serializer = self.get_serializer(data=request.data)
 
         if not serializer.is_valid():
+            # Format errors for frontend compatibility
             errors = {}
             for field, messages in serializer.errors.items():
-                error_key = f"{field}_error"
-                errors[error_key] = messages[0] if messages else "Invalid value"
+                error_key = f'{field}_error'
+                errors[error_key] = messages[0] if messages else 'Invalid value'
 
-            return self.error_response(message="Validation failed", errors=errors)
+            return self.error_response(
+                message='Validation failed',
+                errors=errors
+            )
 
-        product = serializer.save()
-        product_serializer = ProductSerializer(product)
+        try:
+            # Try to create the product
+            product = serializer.save()
+            product_serializer = ProductSerializer(product)
 
-        return self.success_response(
-            data={"product": product_serializer.data},
-            message="Product created successfully!",
-            status_code=status.HTTP_201_CREATED,
-        )
+            return self.success_response(
+                data={'product': product_serializer.data},
+                message='Product created successfully!',
+                status_code=status.HTTP_201_CREATED
+            )
+        except IntegrityError as e:
+            # Handle database constraint violations
+            error_message = str(e).lower()
+            errors = {}
+
+            if 'unique constraint' in error_message or 'unique_together' in error_message:
+                if 'item_no' in error_message:
+                    errors['item_no_error'] = 'This item number already exists for the selected company.'
+                elif 'name' in error_message:
+                    errors['name_error'] = 'A product with this name already exists for the selected company.'
+                else:
+                    errors['form_error'] = 'A product with these details already exists for the selected company.'
+            else:
+                errors['form_error'] = 'Database error occurred while creating the product.'
+
+            return self.error_response(
+                message='Product could not be created due to a constraint violation',
+                errors=errors,
+                status_code=status.HTTP_400_BAD_REQUEST
+            )
+        except Exception as e:
+            return self.error_response(
+                message=f'An unexpected error occurred: {str(e)}',
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 class SendOrderEmailView(AjaxRequiredMixin, StandardResponseMixin, APIView):

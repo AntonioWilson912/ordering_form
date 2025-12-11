@@ -3,7 +3,7 @@ from django.views.generic import ListView, DetailView, UpdateView, CreateView, V
 from django.urls import reverse_lazy
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from django.db import models, transaction
+from django.db import IntegrityError, models, transaction
 from core.mixins import LoginRequiredMixin, PageTitleMixin
 from product_app.models import Product
 from .models import Company
@@ -98,22 +98,83 @@ class BulkProductUploadView(LoginRequiredMixin, PageTitleMixin, View):
                         'error_count': len(errors),
                     })
 
-                # If no errors, create all products in a transaction
-                with transaction.atomic():
-                    created_products = []
-                    for product_data in valid_products:
-                        product = Product.objects.create(**product_data)
-                        created_products.append(product)
+                # If no validation errors, try to create all products
+                created_count = 0
+                skipped_count = 0
+                db_errors = []
 
-                messages.success(
-                    request,
-                    f'Successfully imported {len(created_products)} product(s) for {company.name}.'
-                )
+                with transaction.atomic():
+                    for idx, product_data in enumerate(valid_products, start=1):
+                        try:
+                            product = Product.objects.create(**product_data)
+                            created_count += 1
+                        except IntegrityError as e:
+                            # This shouldn't happen if validation is correct,
+                            # but handle it gracefully just in case
+                            error_msg = str(e).lower()
+
+                            if 'item_no' in error_msg:
+                                reason = f'Item No. "{product_data["item_no"]}" already exists'
+                            elif 'name' in error_msg:
+                                reason = f'Name "{product_data["name"]}" already exists'
+                            else:
+                                reason = 'Database constraint violation'
+
+                            db_errors.append({
+                                'row': idx,
+                                'data': {
+                                    'Item No.': product_data.get('item_no') or '(empty)',
+                                    'Name': product_data.get('name'),
+                                    'Type': product_data.get('item_type')
+                                },
+                                'errors': [reason]
+                            })
+                            skipped_count += 1
+
+                # Check if we had database-level errors
+                if db_errors:
+                    # Roll back and show errors
+                    transaction.set_rollback(True)
+
+                    messages.error(
+                        request,
+                        f'Import failed due to database conflicts. '
+                        f'Please review the errors below.'
+                    )
+
+                    return render(request, self.template_name, {
+                        'company': company,
+                        'form': form,
+                        'page_title': self.get_page_title(),
+                        'csv_errors': db_errors,
+                        'valid_count': 0,
+                        'error_count': len(db_errors),
+                    })
+
+                # Success!
+                if created_count > 0:
+                    messages.success(
+                        request,
+                        f'Successfully imported {created_count} product(s) for {company.name}.'
+                    )
+                else:
+                    messages.info(
+                        request,
+                        'No products were imported.'
+                    )
+
                 return redirect('companies:company_detail', pk=company.pk)
 
             except forms.ValidationError as e:
                 # Handle form-level validation errors (headers, encoding, etc.)
                 form.add_error('csv_file', e)
+            except Exception as e:
+                # Catch any unexpected errors
+                messages.error(
+                    request,
+                    f'An unexpected error occurred: {str(e)}'
+                )
+                form.add_error('csv_file', 'An unexpected error occurred during processing.')
 
         return render(request, self.template_name, {
             'company': company,

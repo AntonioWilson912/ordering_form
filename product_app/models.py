@@ -4,40 +4,6 @@ from core.constants import ITEM_TYPES, get_item_type_display
 
 
 class ProductManager(models.Manager):
-    def validate_new_product(self, product_data):
-        errors = {}
-
-        company_id = product_data.get("company_id", -1)
-        try:
-            company_id = int(company_id)
-        except (ValueError, TypeError):
-            company_id = -1
-
-        if company_id == -1:
-            errors["company_error"] = "Must select a company."
-
-        name = product_data.get("name", "").strip()
-        if len(name) < 3:
-            errors["name_error"] = "Name must be at least 3 characters long."
-
-        # Check for duplicate name within company
-        if name and company_id != -1:
-            if self.filter(company_id=company_id, name__iexact=name).exists():
-                errors["name_error"] = "A product with this name already exists for this company."
-
-        item_type = product_data.get("item_type", "")
-        if item_type not in ["C", "W"]:
-            errors["item_type_error"] = "Must choose a valid item type."
-
-        item_no = product_data.get("item_no", "").strip()
-        if item_no and company_id != -1:
-            if self.filter(company_id=company_id, item_no=item_no).exists():
-                errors["item_no_error"] = (
-                    "That item number for the selected company is already in use."
-                )
-
-        return errors
-
     def active(self):
         return self.filter(active=True)
 
@@ -62,15 +28,24 @@ class Product(models.Model):
     objects = ProductManager()
 
     class Meta:
-        ordering = ['company', 'item_no']
-        unique_together = [
-            ['company', 'item_no'],  # Item no must be unique per company
-            ['company', 'name'],      # Name must be unique per company
-        ]
+        ordering = ['company', 'item_no', 'name']
         indexes = [
             models.Index(fields=['company', 'active']),
-            models.Index(fields=['item_no']),
-            models.Index(fields=['name']),
+            models.Index(fields=['company', 'item_no']),
+            models.Index(fields=['company', 'name']),
+        ]
+        constraints = [
+            # Name must be unique per company
+            models.UniqueConstraint(
+                fields=['company', 'name'],
+                name='unique_product_name_per_company'
+            ),
+            # Item no must be unique per company, but only when not empty
+            models.UniqueConstraint(
+                fields=['company', 'item_no'],
+                condition=models.Q(item_no__gt=''),
+                name='unique_item_no_per_company_when_not_empty'
+            ),
         ]
 
     def __str__(self):

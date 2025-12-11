@@ -45,6 +45,15 @@ class BulkProductUploadForm(forms.Form):
 
         return csv_file
 
+    def _is_empty_row(self, row, header_map):
+        """Check if a row is effectively empty"""
+        values = [
+            (row.get(header_map.get('item no.')) or '').strip(),
+            (row.get(header_map.get('name')) or '').strip(),
+            (row.get(header_map.get('type')) or '').strip(),
+        ]
+        return all(v == '' for v in values)
+
     def parse_csv(self, company):
         """
         Parse CSV file and return list of product data with validation results.
@@ -99,23 +108,34 @@ class BulkProductUploadForm(forms.Form):
         errors = []
         row_num = 1  # Start at 1 (header is row 0)
 
-        # Get existing item numbers and names for this company
-        existing_item_nos = set(
-            Product.objects.filter(company=company, item_no__isnull=False)
-            .exclude(item_no='')
-            .values_list('item_no', flat=True)
-        )
-        existing_names = set(
-            Product.objects.filter(company=company)
-            .values_list('name', flat=True)
-        )
+        # Get existing products for this company
+        # Create case-insensitive lookup dictionaries
+        existing_products = Product.objects.filter(company=company).values('id', 'item_no', 'name')
+
+        # Build lookup dictionaries
+        existing_item_nos = {}  # Maps item_no -> product
+        existing_names_lower = {}  # Maps name.lower() -> product
+
+        for prod in existing_products:
+            # Only track non-empty item numbers
+            if prod['item_no'] and prod['item_no'].strip():
+                existing_item_nos[prod['item_no'].strip()] = prod
+
+            # Track all names (case-insensitive)
+            if prod['name']:
+                existing_names_lower[prod['name'].lower().strip()] = prod
 
         # Track items in current upload to detect duplicates within the CSV
-        csv_item_nos = set()
-        csv_names = set()
+        csv_item_nos = {}  # Maps item_no -> row_num
+        csv_names_lower = {}  # Maps name.lower() -> row_num
 
         for row in csv_reader:
             row_num += 1
+
+            # Check if row is empty - skip it
+            if self._is_empty_row(row, header_map):
+                continue
+
             row_errors = []
 
             # Extract values using mapped headers
@@ -128,29 +148,51 @@ class BulkProductUploadForm(forms.Form):
                 row_errors.append('Name is required')
             elif len(name) < 2:
                 row_errors.append('Name must be at least 2 characters')
-            elif name.lower() in existing_names:
-                row_errors.append(f'Product name "{name}" already exists for this company')
-            elif name.lower() in csv_names:
-                row_errors.append(f'Duplicate name "{name}" in CSV')
+            else:
+                name_lower = name.lower()
+
+                # Check against existing database records
+                if name_lower in existing_names_lower:
+                    existing_prod = existing_names_lower[name_lower]
+                    row_errors.append(
+                        f'Product name "{name}" already exists in database for this company '
+                        f'(Product ID: {existing_prod["id"]})'
+                    )
+                # Check against other rows in this CSV
+                elif name_lower in csv_names_lower:
+                    row_errors.append(
+                        f'Duplicate name "{name}" found in CSV (also on row {csv_names_lower[name_lower]})'
+                    )
 
             # Validate item_no (optional but must be unique if provided)
-            if item_no:
+            if item_no:  # Only validate if item_no is provided
+                # Check against existing database records
                 if item_no in existing_item_nos:
-                    row_errors.append(f'Item No. "{item_no}" already exists for this company')
+                    existing_prod = existing_item_nos[item_no]
+                    row_errors.append(
+                        f'Item No. "{item_no}" already exists in database for this company '
+                        f'(Product: {existing_prod["name"]}, ID: {existing_prod["id"]})'
+                    )
+                # Check against other rows in this CSV
                 elif item_no in csv_item_nos:
-                    row_errors.append(f'Duplicate Item No. "{item_no}" in CSV')
+                    row_errors.append(
+                        f'Duplicate Item No. "{item_no}" found in CSV (also on row {csv_item_nos[item_no]})'
+                    )
 
             # Validate type (required, must be C or W)
+            normalized_type = None
             if not item_type:
                 row_errors.append('Type is required')
-            elif item_type not in ['C', 'W', 'CASE', 'WEIGHT']:
-                row_errors.append(f'Type must be "C" (Case) or "W" (Weight), got "{item_type}"')
-
-            # Normalize type
-            if item_type == 'CASE':
-                item_type = 'C'
+            elif item_type in ['C', 'W']:
+                normalized_type = item_type
+            elif item_type == 'CASE':
+                normalized_type = 'C'
             elif item_type == 'WEIGHT':
-                item_type = 'W'
+                normalized_type = 'W'
+            else:
+                row_errors.append(
+                    f'Type must be "C" (Case) or "W" (Weight). Got: "{item_type}"'
+                )
 
             if row_errors:
                 errors.append({
@@ -164,18 +206,18 @@ class BulkProductUploadForm(forms.Form):
                 })
             else:
                 valid_products.append({
-                    'item_no': item_no or '',
+                    'item_no': item_no,  # Can be empty string
                     'name': name,
-                    'item_type': item_type,
+                    'item_type': normalized_type,
                     'company': company
                 })
 
-                # Track for duplicate detection
-                if item_no:
-                    csv_item_nos.add(item_no)
-                csv_names.add(name.lower())
+                # Track for duplicate detection within CSV
+                if item_no:  # Only track non-empty item numbers
+                    csv_item_nos[item_no] = row_num
+                csv_names_lower[name.lower()] = row_num
 
         if row_num == 1:
-            raise forms.ValidationError('CSV file is empty')
+            raise forms.ValidationError('CSV file is empty (no data rows found)')
 
         return valid_products, errors
