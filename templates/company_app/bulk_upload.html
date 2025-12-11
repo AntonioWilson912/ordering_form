@@ -1,0 +1,338 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+    <div class="bulk-upload-container">
+        <div class="page-header">
+            <h1 class="heading">Bulk Upload Products</h1>
+            <p class="subheading">
+                Upload products for <strong>{{ company.name }}</strong>
+            </p>
+        </div>
+        <div class="upload-instructions">
+            <h3>
+                <i class="fa-solid fa-info-circle"></i> Instructions
+            </h3>
+            <ol>
+                <li>
+                    Download the <a href="{% url 'companies:download_sample_csv' %}"
+    class="download-link">sample CSV template</a>
+                </li>
+                <li>
+                    Fill in your product data with the following columns:
+                    <ul>
+                        <li>
+                            <strong>Item No.</strong> - Optional, but must be unique if provided
+                        </li>
+                        <li>
+                            <strong>Name</strong> - Required, must be unique for this company
+                        </li>
+                        <li>
+                            <strong>Type</strong> - Required, must be "C" (Case) or "W" (Weight)
+                        </li>
+                    </ul>
+                </li>
+                <li>Save your file as CSV (UTF-8)</li>
+                <li>Upload the file using the form below</li>
+            </ol>
+        </div>
+        <div class="upload-form-container">
+            <form method="post" enctype="multipart/form-data" class="upload-form">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="id_csv_file">{{ form.csv_file.label }}</label>
+                    {{ form.csv_file }}
+                    <small class="form-text">{{ form.csv_file.help_text }}</small>
+                    {% if form.csv_file.errors %}<div class="form-error">{{ form.csv_file.errors.0 }}</div>{% endif %}
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-blue">
+                        <i class="fa-solid fa-upload"></i> Upload & Validate
+                    </button>
+                    <a href="{% url 'companies:company_detail' company.pk %}"
+                       class="btn btn-outline">Cancel</a>
+                </div>
+            </form>
+        </div>
+        {% if csv_errors %}
+            <div class="validation-results">
+                <div class="results-summary">
+                    <h3>
+                        <i class="fa-solid fa-exclamation-triangle"></i>
+                        Validation Results
+                    </h3>
+                    <p>
+                        <span class="valid-count">{{ valid_count }} valid row(s)</span> |
+                        <span class="error-count">{{ error_count }} error(s) found</span>
+                    </p>
+                    <p class="error-message">
+                        <strong>Please fix the errors below and try again.</strong>
+                    </p>
+                </div>
+                <div class="errors-list">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Row</th>
+                                <th>Data</th>
+                                <th>Errors</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for error in csv_errors %}
+                                <tr class="error-row">
+                                    <td class="row-number">{{ error.row }}</td>
+                                    <td class="row-data">
+                                        <div class="data-preview">
+                                            {% for key, value in error.data.items %}
+                                                <span class="data-item">
+                                                    <strong>{{ key }}:</strong> {{ value }}
+                                                </span>
+                                            {% endfor %}
+                                        </div>
+                                    </td>
+                                    <td class="row-errors">
+                                        <ul class="error-list">
+                                            {% for err in error.errors %}<li>{{ err }}</li>{% endfor %}
+                                        </ul>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        {% endif %}
+        <div class="csv-format-reference">
+            <h3>
+                <i class="fa-solid fa-table"></i> CSV Format Reference
+            </h3>
+            <table class="table reference-table">
+                <thead>
+                    <tr>
+                        <th>Column</th>
+                        <th>Required</th>
+                        <th>Format</th>
+                        <th>Example</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <strong>Item No.</strong>
+                        </td>
+                        <td>
+                            <span class="badge badge-warning">Optional</span>
+                        </td>
+                        <td>
+                            Text, max 12 characters
+                            <br>
+                            Must be unique if provided
+                        </td>
+                        <td>
+                            <code>SKU-001</code>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>Name</strong>
+                        </td>
+                        <td>
+                            <span class="badge badge-danger">Required</span>
+                        </td>
+                        <td>
+                            Text, min 2 characters
+                            <br>
+                            Must be unique for this company
+                        </td>
+                        <td>
+                            <code>Premium Coffee Beans</code>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>Type</strong>
+                        </td>
+                        <td>
+                            <span class="badge badge-danger">Required</span>
+                        </td>
+                        <td>Must be "C" for Case or "W" for Weight</td>
+                        <td>
+                            <code>C</code> or <code>W</code>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="format-notes">
+                <h4>Additional Notes:</h4>
+                <ul>
+                    <li>
+                        All products are created with <strong>Active</strong> status by default
+                    </li>
+                    <li>File must be saved as CSV (Comma-Separated Values)</li>
+                    <li>Use UTF-8 encoding to support special characters</li>
+                    <li>Maximum file size: 5MB</li>
+                    <li>Empty rows will be skipped</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block extra_css %}
+    <style>
+    .bulk-upload-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .page-header {
+        margin-bottom: 30px;
+    }
+
+    .subheading {
+        color: #666;
+        font-size: 1.1rem;
+        margin-top: 10px;
+    }
+
+    .upload-instructions,
+    .upload-form-container,
+    .validation-results,
+    .csv-format-reference {
+        background: white;
+        border-radius: 8px;
+        padding: 25px;
+        margin-bottom: 25px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .upload-instructions h3,
+    .csv-format-reference h3 {
+        color: #5b83ad;
+        margin: 0 0 15px 0;
+        font-size: 1.2rem;
+    }
+
+    .upload-instructions ol {
+        margin-left: 20px;
+        line-height: 1.8;
+    }
+
+    .upload-instructions ul {
+        margin-top: 10px;
+    }
+
+    .download-link {
+        font-weight: 600;
+        color: #5b83ad;
+        text-decoration: underline;
+    }
+
+    .upload-form {
+        margin-top: 20px;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+    }
+
+    .validation-results {
+        border-left: 4px solid #bd1f1f;
+    }
+
+    .results-summary h3 {
+        color: #bd1f1f;
+        margin: 0 0 15px 0;
+    }
+
+    .valid-count {
+        color: #84be7d;
+        font-weight: 600;
+    }
+
+    .error-count {
+        color: #bd1f1f;
+        font-weight: 600;
+    }
+
+    .error-message {
+        color: #bd1f1f;
+        font-weight: 500;
+        margin-top: 10px;
+    }
+
+    .errors-list {
+        margin-top: 20px;
+    }
+
+    .error-row {
+        background-color: #fff5f5 !important;
+    }
+
+    .row-number {
+        font-weight: 700;
+        color: #5b83ad;
+        font-size: 1.1rem;
+    }
+
+    .data-preview {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .data-item {
+        font-size: 0.9rem;
+    }
+
+    .data-item strong {
+        color: #5b83ad;
+    }
+
+    .error-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .error-list li {
+        color: #bd1f1f;
+        margin: 5px 0;
+        padding-left: 20px;
+        position: relative;
+    }
+
+    .error-list li:before {
+        content: "•";
+        position: absolute;
+        left: 0;
+        font-weight: bold;
+    }
+
+    .reference-table {
+        margin-top: 15px;
+    }
+
+    .format-notes {
+        margin-top: 20px;
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 4px;
+    }
+
+    .format-notes h4 {
+        color: #333;
+        margin: 0 0 10px 0;
+    }
+
+    .format-notes ul {
+        margin: 0;
+        padding-left: 20px;
+    }
+
+    .format-notes li {
+        margin: 8px 0;
+    }
+    </style>
+{% endblock %}

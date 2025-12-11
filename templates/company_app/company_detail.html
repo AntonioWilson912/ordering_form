@@ -11,6 +11,10 @@
                class="btn btn-blue">
                 <i class="fa-solid fa-edit"></i> Edit
             </a>
+            <a href="{% url 'companies:bulk_upload' company.pk %}"
+               class="btn btn-green">
+                <i class="fa-solid fa-file-upload"></i> Bulk Upload Products
+            </a>
             {% if company.is_active %}
                 <a href="{% url 'orders:new_order' %}?company={{ company.pk }}"
                    class="btn btn-orange">
@@ -18,8 +22,8 @@
                 </a>
             {% endif %}
             <a href="{% url 'products:new_product' %}?company={{ company.pk }}"
-               class="btn btn-green">
-                <i class="fa-solid fa-plus"></i> Add Product
+               class="btn btn-outline">
+                <i class="fa-solid fa-plus"></i> Add Single Product
             </a>
         </div>
     </div>
@@ -62,7 +66,7 @@
             {% if products %}
                 {% for product in products %}
                     <tr>
-                        <td>{{ product.item_no|default:"N/A" }}</td>
+                        <td>{{ product.item_no|default:"—" }}</td>
                         <td>
                             <a href="{% url 'products:product_detail' product.pk %}">{{ product.name }}</a>
                         </td>
@@ -82,7 +86,12 @@
                 {% endfor %}
             {% else %}
                 <tr>
-                    <td colspan="5" class="text-center">No products for this company.</td>
+                    <td colspan="5" class="text-center">
+                        No products for this company.
+                        <a href="{% url 'companies:bulk_upload' company.pk %}">Upload products via CSV</a>
+                        or
+                        <a href="{% url 'products:new_product' %}?company={{ company.pk }}">add them manually</a>.
+                    </td>
                 </tr>
             {% endif %}
         </tbody>

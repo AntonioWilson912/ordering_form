@@ -3,7 +3,7 @@ from django.core.management.commands.startapp import Command as StartAppCommand
 
 
 class Command(StartAppCommand):
-    help = 'Creates a Django app with urls.py and forms.py files included'
+    help = 'Creates a Django app with a forms.py file included'
 
     def handle(self, *args, **options):
         # First, run the standard startapp command
@@ -18,24 +18,7 @@ class Command(StartAppCommand):
         else:
             app_dir = os.path.join(target, app_name)
 
-        # Create urls.py
-        urls_path = os.path.join(app_dir, 'urls.py')
-        urls_content = f'''from django.urls import path
-from . import views
-
-app_name = "{app_name}"
-
-urlpatterns = [
-    # Add your URL patterns here
-    # Example:
-    # path('', views.index, name='index'),
-]
-'''
-
-        with open(urls_path, 'w') as f:
-            f.write(urls_content)
-
-        # Create forms.py
+        # Create forms.py only
         forms_path = os.path.join(app_dir, 'forms.py')
         forms_content = f'''from django import forms
 # from .models import YourModel
@@ -67,5 +50,5 @@ urlpatterns = [
             f.write(forms_content)
 
         self.stdout.write(
-            self.style.SUCCESS(f'Successfully created {app_name} with urls.py and forms.py')
+            self.style.SUCCESS(f'Successfully created {app_name} with forms.py')
         )

@@ -16,15 +16,20 @@ class ProductManager(models.Manager):
         if company_id == -1:
             errors["company_error"] = "Must select a company."
 
-        name = product_data.get("name", "")
+        name = product_data.get("name", "").strip()
         if len(name) < 3:
             errors["name_error"] = "Name must be at least 3 characters long."
+
+        # Check for duplicate name within company
+        if name and company_id != -1:
+            if self.filter(company_id=company_id, name__iexact=name).exists():
+                errors["name_error"] = "A product with this name already exists for this company."
 
         item_type = product_data.get("item_type", "")
         if item_type not in ["C", "W"]:
             errors["item_type_error"] = "Must choose a valid item type."
 
-        item_no = product_data.get("item_no", "")
+        item_no = product_data.get("item_no", "").strip()
         if item_no and company_id != -1:
             if self.filter(company_id=company_id, item_no=item_no).exists():
                 errors["item_no_error"] = (
@@ -42,7 +47,9 @@ class ProductManager(models.Manager):
 
 class Product(models.Model):
     company = models.ForeignKey(
-        Company, related_name="company_products", on_delete=models.CASCADE
+        Company,
+        related_name="company_products",
+        on_delete=models.CASCADE
     )
     name = models.CharField(max_length=255)
     item_no = models.CharField(max_length=12, default="", blank=True)
@@ -55,11 +62,15 @@ class Product(models.Model):
     objects = ProductManager()
 
     class Meta:
-        ordering = ["company", "item_no"]
-        unique_together = ["company", "item_no"]
+        ordering = ['company', 'item_no']
+        unique_together = [
+            ['company', 'item_no'],  # Item no must be unique per company
+            ['company', 'name'],      # Name must be unique per company
+        ]
         indexes = [
-            models.Index(fields=["company", "active"]),
-            models.Index(fields=["item_no"]),
+            models.Index(fields=['company', 'active']),
+            models.Index(fields=['item_no']),
+            models.Index(fields=['name']),
         ]
 
     def __str__(self):
