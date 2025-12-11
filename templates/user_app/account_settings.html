@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load timezone_tags %}
 {% block content %}
     <div class="settings-container">
         <h1 class="heading text-center">Account Settings</h1>
@@ -9,34 +10,30 @@
                 <h2>
                     <i class="fa-solid fa-user"></i> Profile Information
                 </h2>
-                <form method="post" class="settings-form">
+                <form method="post"
+                      action="{% url 'users:update_profile' %}"
+                      class="settings-form">
                     {% csrf_token %}
                     <div class="form-group">
                         <label for="id_first_name">First Name</label>
-                        {{ form.first_name }}
+                        {{ profile_form.first_name }}
                     </div>
                     <div class="form-group">
                         <label for="id_last_name">Last Name</label>
-                        {{ form.last_name }}
+                        {{ profile_form.last_name }}
                     </div>
                     <div class="form-group">
                         <label for="id_display_name">Display Name</label>
-                        {{ form.display_name }}
-                        <small class="form-text">{{ form.display_name.help_text }}</small>
-                    </div>
-                    <div class="form-group">
-                        <label for="id_email">Email Address</label>
-                        {{ form.email }}
-                        <small class="form-text">{{ form.email.help_text }}</small>
-                        {% if form.email.errors %}<div class="form-error">{{ form.email.errors.0 }}</div>{% endif %}
+                        {{ profile_form.display_name }}
+                        <small class="form-text">{{ profile_form.display_name.help_text }}</small>
                     </div>
                     <div class="form-group">
                         <label for="id_timezone">Timezone</label>
-                        {{ form.timezone }}
+                        {{ profile_form.timezone }}
                     </div>
                     <div class="form-submit">
                         <button type="submit" class="btn btn-blue">
-                            <i class="fa-solid fa-save"></i> Save Changes
+                            <i class="fa-solid fa-save"></i> Save Profile
                         </button>
                     </div>
                 </form>
@@ -46,17 +43,14 @@
                 <h2>
                     <i class="fa-solid fa-signature"></i> Email Signature
                 </h2>
-                <form method="post" class="settings-form">
+                <form method="post"
+                      action="{% url 'users:update_signature' %}"
+                      class="settings-form">
                     {% csrf_token %}
-                    {{ form.first_name.as_hidden }}
-                    {{ form.last_name.as_hidden }}
-                    {{ form.display_name.as_hidden }}
-                    {{ form.email.as_hidden }}
-                    {{ form.timezone.as_hidden }}
                     <div class="form-group">
                         <label for="id_email_signature">Your Signature</label>
-                        {{ form.email_signature }}
-                        <small class="form-text">{{ form.email_signature.help_text }}</small>
+                        {{ signature_form.email_signature }}
+                        <small class="form-text">{{ signature_form.email_signature.help_text }}</small>
                     </div>
                     <div class="signature-preview">
                         <label>Preview:</label>
@@ -94,6 +88,16 @@
                         Update your display name to change how your name appears.
                     </small>
                 </div>
+                <div class="email-info-section">
+                    <h3>Email Address</h3>
+                    <div class="info-display">
+                        <span class="email-value">{{ request.user.email }}</span>
+                    </div>
+                    <small class="form-text">
+                        <i class="fa-solid fa-lock"></i>
+                        To change your email address, please contact support.
+                    </small>
+                </div>
             </div>
             <!-- Change Password -->
             <div class="settings-card">
@@ -125,7 +129,7 @@
                 </form>
             </div>
             <!-- Email Templates -->
-            <div class="settings-card" style="grid-column: 1 / -1;">
+            <div class="settings-card full-width">
                 <h2>
                     <i class="fa-solid fa-file-alt"></i> Email Templates
                 </h2>
@@ -214,11 +218,11 @@
                     </div>
                     <div class="info-row">
                         <span class="info-label">Member Since:</span>
-                        <span class="info-value">{{ request.user.created_at|date:"F d, Y" }}</span>
+                        <span class="info-value">{% user_datetime request.user.created_at request.user "F d, Y" %}</span>
                     </div>
                     <div class="info-row">
                         <span class="info-label">Last Updated:</span>
-                        <span class="info-value">{{ request.user.updated_at|date:"F d, Y H:i" }}</span>
+                        <span class="info-value">{% user_datetime request.user.updated_at request.user "F d, Y g:i A" %}</span>
                     </div>
                 </div>
             </div>
@@ -264,6 +268,34 @@
         font-size: 1rem;
         color: #333;
         margin-bottom: 5px;
+    }
+
+    .email-info-section {
+        margin-top: 25px;
+        padding-top: 20px;
+        border-top: 1px solid #e0e0e0;
+    }
+
+    .email-info-section h3 {
+        font-size: 1rem;
+        color: #333;
+        margin: 0 0 10px 0;
+    }
+
+    .info-display {
+        background: #f8f9fa;
+        padding: 12px 15px;
+        border-radius: 4px;
+        border: 1px solid #e0e0e0;
+    }
+
+    .email-value {
+        font-weight: 600;
+        color: #333;
+    }
+
+    .full-width {
+        grid-column: 1 / -1;
     }
     </style>
 {% endblock %}
